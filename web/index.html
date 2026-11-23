@@ -3,545 +3,737 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VeloceML | Ultra-Low Latency C++ Inference Engine</title>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <title>VeloceML • Real-Time Transaction Risk Evaluator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-primary: #0a0e17;
-            --bg-card: rgba(18, 26, 43, 0.85);
-            --border-card: rgba(255, 255, 255, 0.08);
-            --accent-cyan: #00f2fe;
-            --accent-blue: #4facfe;
-            --accent-emerald: #10b981;
-            --accent-rose: #f43f5e;
-            --accent-amber: #f59e0b;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
+            --bg-canvas: #090a0c;
+            --bg-surface: #111317;
+            --bg-surface-elevated: #171a20;
+            --bg-surface-hover: #1d2129;
+            
+            --border-subtle: #1e2229;
+            --border-strong: #2a303c;
+            --border-focus: #4b5563;
+
+            --text-primary: #f2f4f7;
+            --text-secondary: #9aa1ad;
+            --text-tertiary: #5e6673;
+
+            --signal-pass: #16a34a;
+            --signal-pass-bg: #092113;
+            --signal-pass-border: #14532d;
+
+            --signal-fail: #dc2626;
+            --signal-fail-bg: #220b0d;
+            --signal-fail-border: #7f1d1d;
+
+            --font-sans: 'Geist', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Plus Jakarta Sans', sans-serif;
         }
 
         body {
-            background-color: var(--bg-primary);
-            color: var(--text-main);
+            background-color: var(--bg-canvas);
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            font-size: 14px;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            padding: 32px 24px;
             min-height: 100vh;
-            padding: 2rem 1rem;
-            background-image: 
-                radial-gradient(at 0% 0%, rgba(79, 172, 254, 0.12) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(0, 242, 254, 0.08) 0px, transparent 50%);
         }
 
-        .container {
-            max-width: 1200px;
+        .shell {
+            max-width: 1240px;
             margin: 0 auto;
         }
 
+        /* ---------------- Header & Editorial Meta ---------------- */
         header {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2.5rem;
-            border-bottom: 1px solid var(--border-card);
-            padding-bottom: 1.5rem;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-
-        .brand-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: rgba(0, 242, 254, 0.1);
-            border: 1px solid rgba(0, 242, 254, 0.3);
-            padding: 0.35rem 0.8rem;
-            border-radius: 9999px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: var(--accent-cyan);
-            margin-bottom: 0.5rem;
-        }
-
-        h1 {
-            font-size: 2.2rem;
-            font-weight: 800;
-            letter-spacing: -0.03em;
-            background: linear-gradient(135deg, #ffffff 30%, #94a3b8 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .status-pill {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: rgba(16, 185, 129, 0.1);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            color: var(--accent-emerald);
-            padding: 0.5rem 1rem;
-            border-radius: 9999px;
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-
-        .pulse-dot {
-            width: 8px;
-            height: 8px;
-            background: var(--accent-emerald);
-            border-radius: 50%;
-            box-shadow: 0 0 12px var(--accent-emerald);
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.4; transform: scale(0.8); }
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 1.25rem;
-            margin-bottom: 2.5rem;
-        }
-
-        .stat-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-card);
-            border-radius: 1rem;
-            padding: 1.5rem;
-            backdrop-filter: blur(12px);
-        }
-
-        .stat-label {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            font-weight: 500;
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-val {
-            font-size: 1.75rem;
-            font-weight: 800;
-            font-family: 'JetBrains Mono', monospace;
-            color: #fff;
-        }
-
-        .stat-val.accent {
-            color: var(--accent-cyan);
-        }
-
-        .main-grid {
-            display: grid;
-            grid-template-columns: 1.3fr 1fr;
-            gap: 2rem;
-        }
-
-        @media (max-width: 900px) {
-            .main-grid { grid-template-columns: 1fr; }
-        }
-
-        .card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-card);
-            border-radius: 1.25rem;
-            padding: 2rem;
-            backdrop-filter: blur(12px);
-        }
-
-        .card-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            margin-bottom: 1.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .presets {
-            display: flex;
-            gap: 0.75rem;
-            margin-bottom: 1.5rem;
+            align-items: flex-end;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--border-subtle);
+            margin-bottom: 24px;
+            gap: 16px;
             flex-wrap: wrap;
         }
 
-        .btn-preset {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border-card);
-            color: var(--text-muted);
-            padding: 0.5rem 0.9rem;
-            border-radius: 0.5rem;
-            font-size: 0.8rem;
+        .header-title-group h1 {
+            font-size: 20px;
             font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
+            letter-spacing: -0.02em;
+            color: var(--text-primary);
+            margin-bottom: 4px;
         }
 
-        .btn-preset:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: #fff;
-            border-color: rgba(255, 255, 255, 0.2);
+        .header-title-group p {
+            font-size: 13px;
+            color: var(--text-secondary);
         }
 
-        .form-group {
-            margin-bottom: 1.25rem;
-        }
-
-        .form-label {
+        .header-system-meta {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-secondary);
             display: flex;
-            justify-content: space-between;
-            font-size: 0.9rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-        }
-
-        .form-val-display {
-            font-family: 'JetBrains Mono', monospace;
-            color: var(--accent-cyan);
-        }
-
-        input[type="range"] {
-            width: 100%;
-            height: 6px;
-            background: rgba(255, 255, 255, 0.1);
+            align-items: center;
+            gap: 12px;
+            background: var(--bg-surface);
+            padding: 6px 12px;
+            border: 1px solid var(--border-subtle);
             border-radius: 4px;
-            outline: none;
-            accent-color: var(--accent-cyan);
-            cursor: pointer;
         }
 
-        select {
-            width: 100%;
-            padding: 0.8rem 1rem;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border-card);
-            color: #fff;
-            border-radius: 0.75rem;
-            font-size: 0.95rem;
-            outline: none;
-            margin-bottom: 1.5rem;
+        .status-indicator {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: var(--signal-pass);
         }
 
-        select option {
-            background: #121a2b;
-            color: #fff;
+        /* ---------------- Telemetry Bar ---------------- */
+        .telemetry-strip {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            border: 1px solid var(--border-subtle);
+            background: var(--bg-surface);
+            border-radius: 4px;
+            margin-bottom: 32px;
         }
 
-        .btn-predict {
-            width: 100%;
-            padding: 1rem;
-            background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
-            color: #050b14;
-            border: none;
-            border-radius: 0.75rem;
-            font-size: 1rem;
-            font-weight: 800;
-            cursor: pointer;
-            transition: all 0.2s;
-            box-shadow: 0 4px 20px rgba(0, 242, 254, 0.25);
+        @media (max-width: 800px) {
+            .telemetry-strip {
+                grid-template-columns: 1fr 1fr;
+            }
         }
 
-        .btn-predict:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 24px rgba(0, 242, 254, 0.4);
+        .telemetry-cell {
+            padding: 16px 20px;
+            border-right: 1px solid var(--border-subtle);
         }
 
-        .result-box {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem;
-            border-radius: 1rem;
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid var(--border-card);
-            text-align: center;
-            margin-bottom: 1.5rem;
-            min-height: 220px;
+        .telemetry-cell:last-child {
+            border-right: none;
         }
 
-        .badge-decision {
-            font-size: 1.25rem;
-            font-weight: 800;
-            padding: 0.6rem 1.5rem;
-            border-radius: 9999px;
-            margin-bottom: 1rem;
+        .telemetry-label {
+            font-size: 11px;
+            font-family: var(--font-mono);
+            text-transform: uppercase;
             letter-spacing: 0.05em;
+            color: var(--text-tertiary);
+            margin-bottom: 6px;
         }
 
-        .badge-safe {
-            background: rgba(16, 185, 129, 0.15);
-            border: 1px solid var(--accent-emerald);
-            color: var(--accent-emerald);
+        .telemetry-value {
+            font-family: var(--font-mono);
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
         }
 
-        .badge-fraud {
-            background: rgba(244, 63, 94, 0.15);
-            border: 1px solid var(--accent-rose);
-            color: var(--accent-rose);
+        .telemetry-sub {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 2px;
         }
 
-        .prob-bar-container {
-            width: 100%;
-            height: 12px;
-            background: rgba(255, 255, 255, 0.08);
-            border-radius: 9999px;
-            overflow: hidden;
-            margin: 1rem 0 0.5rem;
+        /* ---------------- Main Structured Split-View ---------------- */
+        .workbench-layout {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 24px;
+            align-items: start;
         }
 
-        .prob-bar {
-            height: 100%;
-            width: 0%;
-            background: var(--accent-emerald);
-            transition: width 0.4s ease, background 0.4s ease;
+        @media (max-width: 960px) {
+            .workbench-layout {
+                grid-template-columns: 1fr;
+            }
         }
 
-        .meta-grid {
+        .panel {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: 4px;
+            padding: 24px;
+        }
+
+        .panel-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 16px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .panel-title {
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--text-secondary);
+        }
+
+        /* ---------------- Model Segmented Control ---------------- */
+        .segmented-control {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-            width: 100%;
-            margin-top: 1rem;
-            text-align: left;
+            background: var(--bg-surface-elevated);
+            padding: 2px;
+            border: 1px solid var(--border-subtle);
+            border-radius: 4px;
+            margin-bottom: 24px;
         }
 
-        .meta-item {
-            background: rgba(255, 255, 255, 0.03);
-            padding: 0.75rem 1rem;
-            border-radius: 0.5rem;
-        }
-
-        .meta-title {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            margin-bottom: 0.25rem;
-        }
-
-        .meta-val {
-            font-family: 'JetBrains Mono', monospace;
-            font-weight: 700;
-            font-size: 1.1rem;
-        }
-
-        .benchmark-section {
-            margin-top: 1.5rem;
-            padding-top: 1.5rem;
-            border-top: 1px solid var(--border-card);
-        }
-
-        .btn-bench {
-            width: 100%;
-            padding: 0.8rem;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border-card);
-            color: var(--text-main);
-            border-radius: 0.5rem;
-            font-weight: 700;
+        .segment-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-family: var(--font-sans);
+            font-size: 12px;
+            font-weight: 500;
+            padding: 8px 12px;
             cursor: pointer;
-            transition: all 0.2s;
+            border-radius: 3px;
+            transition: all 0.15s ease;
         }
 
-        .btn-bench:hover {
-            background: rgba(255, 255, 255, 0.1);
+        .segment-btn:hover {
+            color: var(--text-primary);
         }
 
-        .bench-output {
-            margin-top: 1rem;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.85rem;
-            color: var(--accent-cyan);
-            background: #060910;
-            padding: 1rem;
-            border-radius: 0.5rem;
+        .segment-btn.active {
+            background: var(--bg-surface);
+            color: var(--text-primary);
+            font-weight: 600;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+        }
+
+        /* ---------------- Presets Strip ---------------- */
+        .presets-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .presets-label {
+            font-size: 11px;
+            color: var(--text-tertiary);
+            font-family: var(--font-mono);
+            text-transform: uppercase;
+            margin-right: 4px;
+        }
+
+        .preset-chip {
+            background: transparent;
+            border: 1px solid var(--border-subtle);
+            color: var(--text-secondary);
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-family: var(--font-sans);
+            transition: all 0.15s ease;
+        }
+
+        .preset-chip:hover {
+            border-color: var(--border-strong);
+            color: var(--text-primary);
+            background: var(--bg-surface-elevated);
+        }
+
+        /* ---------------- Form Fields ---------------- */
+        .fields-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px 16px;
+            margin-bottom: 28px;
+        }
+
+        @media (max-width: 640px) {
+            .fields-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .field-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .field-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 8px;
+        }
+
+        .field-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .field-value {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .slider-track {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 4px;
+            background: var(--bg-surface-elevated);
+            border-radius: 2px;
+            outline: none;
+            border: 1px solid var(--border-subtle);
+            cursor: pointer;
+        }
+
+        .slider-track::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 2px;
+            background: var(--text-primary);
+            cursor: pointer;
+            border: none;
+            transition: transform 0.1s ease;
+        }
+
+        .slider-track::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+        }
+
+        /* ---------------- Single Primary CTA ---------------- */
+        .btn-primary {
+            display: block;
+            width: 100%;
+            background: var(--text-primary);
+            color: var(--bg-canvas);
+            border: 1px solid var(--text-primary);
+            border-radius: 4px;
+            padding: 12px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: var(--font-sans);
+            letter-spacing: -0.01em;
+            cursor: pointer;
+            transition: opacity 0.15s ease;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+
+        .btn-primary:active {
+            opacity: 0.8;
+        }
+
+        /* ---------------- Inspector / Verdict Panel ---------------- */
+        .verdict-box {
+            border: 1px solid var(--border-subtle);
+            background: var(--bg-surface-elevated);
+            border-radius: 4px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        .verdict-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .verdict-badge {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 3px 8px;
+            border-radius: 3px;
+            display: inline-block;
+        }
+
+        .verdict-badge.pass {
+            background: var(--signal-pass-bg);
+            color: var(--signal-pass);
+            border: 1px solid var(--signal-pass-border);
+        }
+
+        .verdict-badge.fail {
+            background: var(--signal-fail-bg);
+            color: var(--signal-fail);
+            border: 1px solid var(--signal-fail-border);
+        }
+
+        .score-row {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .score-number {
+            font-family: var(--font-mono);
+            font-size: 32px;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            color: var(--text-primary);
+        }
+
+        .score-sublabel {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .threshold-bar {
+            width: 100%;
+            height: 4px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .threshold-fill {
+            height: 100%;
+            background: var(--signal-pass);
+            width: 0%;
+            transition: width 0.2s ease, background-color 0.2s ease;
+        }
+
+        /* ---------------- Telemetry Breakdown Table ---------------- */
+        .telemetry-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            margin-bottom: 24px;
+        }
+
+        .telemetry-table tr {
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .telemetry-table td {
+            padding: 10px 0;
+            color: var(--text-secondary);
+        }
+
+        .telemetry-table td.value {
+            text-align: right;
+            font-family: var(--font-mono);
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        /* ---------------- Stress Probe Block ---------------- */
+        .probe-section {
+            border-top: 1px solid var(--border-subtle);
+            padding-top: 20px;
+        }
+
+        .probe-section-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .probe-description {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--border-strong);
+            color: var(--text-secondary);
+            border-radius: 4px;
+            padding: 8px 14px;
+            font-size: 12px;
+            font-weight: 500;
+            font-family: var(--font-sans);
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.15s ease;
+        }
+
+        .btn-secondary:hover {
+            color: var(--text-primary);
+            background: var(--bg-surface-elevated);
+            border-color: var(--border-focus);
+        }
+
+        .probe-result {
+            margin-top: 12px;
+            padding: 10px 12px;
+            background: var(--bg-surface-elevated);
+            border: 1px solid var(--border-subtle);
+            border-radius: 4px;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-secondary);
             display: none;
+            line-height: 1.6;
+        }
+
+        .probe-result strong {
+            color: var(--text-primary);
         }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="shell">
+        <!-- Editorial Header -->
         <header>
-            <div>
-                <div class="brand-badge">⚡ VELOCEML C++20 INFERENCE ENGINE</div>
-                <h1>Real-Time Financial Fraud Engine</h1>
+            <div class="header-title-group">
+                <h1>Transaction Risk Scoring Service</h1>
+                <p>C++20 In-Memory Inference • Microsecond Fraud Detection</p>
             </div>
-            <div class="status-pill">
-                <div class="pulse-dot"></div>
-                <span>REST API ONLINE :8080</span>
+            <div class="header-system-meta">
+                <span class="status-indicator"></span>
+                <span>DAEMON ACTIVE • PORT 8080</span>
             </div>
         </header>
 
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-label">C++ Inference Latency (p50)</div>
-                <div class="stat-val accent">&lt; 0.10 µs</div>
+        <!-- Structured Telemetry Strip -->
+        <div class="telemetry-strip">
+            <div class="telemetry-cell">
+                <div class="telemetry-label">Kernel Latency (p50)</div>
+                <div class="telemetry-value">0.08 µs</div>
+                <div class="telemetry-sub">Apple Silicon / ARM64</div>
             </div>
-            <div class="stat-card">
-                <div class="stat-label">Peak Engine Throughput</div>
-                <div class="stat-val">5.6M+ <span style="font-size: 1rem; font-weight: 400; color: var(--text-muted);">ops/s</span></div>
+            <div class="telemetry-cell">
+                <div class="telemetry-label">Throughput Capacity</div>
+                <div class="telemetry-value">5.64M req/s</div>
+                <div class="telemetry-sub">Single Core CPU Bound</div>
             </div>
-            <div class="stat-card">
-                <div class="stat-label">Active Models</div>
-                <div class="stat-val">Logistic & Tree</div>
+            <div class="telemetry-cell">
+                <div class="telemetry-label">Active Weights</div>
+                <div class="telemetry-value">142 KB</div>
+                <div class="telemetry-sub">Zero Allocation Serving</div>
             </div>
-            <div class="stat-card">
-                <div class="stat-label">Model Memory Overhead</div>
-                <div class="stat-val">&lt; 150 KB</div>
+            <div class="telemetry-cell">
+                <div class="telemetry-label">Decision Boundary</div>
+                <div class="telemetry-value">Threshold 0.50</div>
+                <div class="telemetry-sub">Calibrated Sigmoid / Gini</div>
             </div>
         </div>
 
-        <div class="main-grid">
-            <!-- Left: Transaction Input Form -->
-            <div class="card">
-                <div class="card-title">
-                    <span>Transaction Parameters</span>
+        <!-- Main Workbench Layout -->
+        <div class="workbench-layout">
+            <!-- Left: Transaction Vector Controls -->
+            <div class="panel">
+                <div class="panel-heading">
+                    <span class="panel-title">Vector Inputs</span>
+                    <span style="font-family: var(--font-mono); font-size: 11px; color: var(--text-tertiary);">R^6 DIMENSIONS</span>
                 </div>
 
-                <div class="presets">
-                    <span style="font-size: 0.85rem; color: var(--text-muted); align-self: center;">Quick Scenarios:</span>
-                    <button class="btn-preset" onclick="loadScenario('safe')">🟢 Coffee Purchase ($4.50)</button>
-                    <button class="btn-preset" onclick="loadScenario('suspicious')">🟡 Online Electronics ($450)</button>
-                    <button class="btn-preset" onclick="loadScenario('fraud')">🔴 Foreign ATM Fraud ($1,850)</button>
+                <!-- Model Selector (Segmented Tab) -->
+                <div class="segmented-control">
+                    <button type="button" class="segment-btn active" id="btn_model_logistic" onclick="selectModel('logistic')">
+                        Logistic Regression (Adam)
+                    </button>
+                    <button type="button" class="segment-btn" id="btn_model_tree" onclick="selectModel('tree')">
+                        Decision Tree (Gini)
+                    </button>
                 </div>
 
-                <div class="form-group">
-                    <div class="form-label">
-                        <span>Transaction Amount ($)</span>
-                        <span class="form-val-display" id="val_amount">$4.50</span>
+                <!-- Benchmarking Presets -->
+                <div class="presets-row">
+                    <span class="presets-label">Presets:</span>
+                    <button type="button" class="preset-chip" onclick="applyPreset('grocery')">Grocery ($4.50)</button>
+                    <button type="button" class="preset-chip" onclick="applyPreset('ecommerce')">E-Commerce ($450)</button>
+                    <button type="button" class="preset-chip" onclick="applyPreset('compromised')">Cross-Border ($1,850)</button>
+                </div>
+
+                <!-- 6 Input Sliders (4/8px Scale) -->
+                <div class="fields-grid">
+                    <div class="field-group">
+                        <div class="field-header">
+                            <label class="field-label" for="amount">Transaction Amount</label>
+                            <span class="field-value" id="val_amount">$4.50</span>
+                        </div>
+                        <input class="slider-track" type="range" id="amount" min="1" max="3000" step="0.5" value="4.5" oninput="handleInputChange()">
                     </div>
-                    <input type="range" id="amount" min="1" max="3000" step="1" value="4.5" oninput="updateDisplay()">
-                </div>
 
-                <div class="form-group">
-                    <div class="form-label">
-                        <span>Distance From Home (km)</span>
-                        <span class="form-val-display" id="val_dist_home">2.1 km</span>
+                    <div class="field-group">
+                        <div class="field-header">
+                            <label class="field-label" for="dist_home">Distance from Home</label>
+                            <span class="field-value" id="val_dist_home">1.2 km</span>
+                        </div>
+                        <input class="slider-track" type="range" id="dist_home" min="0" max="800" step="1" value="1.2" oninput="handleInputChange()">
                     </div>
-                    <input type="range" id="dist_home" min="0" max="1000" step="1" value="2" oninput="updateDisplay()">
-                </div>
 
-                <div class="form-group">
-                    <div class="form-label">
-                        <span>Distance From Last Transaction (km)</span>
-                        <span class="form-val-display" id="val_dist_last">0.5 km</span>
+                    <div class="field-group">
+                        <div class="field-header">
+                            <label class="field-label" for="dist_last">Distance from Last Tx</label>
+                            <span class="field-value" id="val_dist_last">0.5 km</span>
+                        </div>
+                        <input class="slider-track" type="range" id="dist_last" min="0" max="800" step="1" value="0.5" oninput="handleInputChange()">
                     </div>
-                    <input type="range" id="dist_last" min="0" max="1000" step="1" value="0.5" oninput="updateDisplay()">
-                </div>
 
-                <div class="form-group">
-                    <div class="form-label">
-                        <span>24h Purchase Frequency (tx count)</span>
-                        <span class="form-val-display" id="val_freq">2</span>
+                    <div class="field-group">
+                        <div class="field-header">
+                            <label class="field-label" for="freq">Velocity (24h Frequency)</label>
+                            <span class="field-value" id="val_freq">2 tx</span>
+                        </div>
+                        <input class="slider-track" type="range" id="freq" min="1" max="30" step="1" value="2" oninput="handleInputChange()">
                     </div>
-                    <input type="range" id="freq" min="1" max="30" step="1" value="2" oninput="updateDisplay()">
-                </div>
 
-                <div class="form-group">
-                    <div class="form-label">
-                        <span>Device Risk Fingerprint [0-1]</span>
-                        <span class="form-val-display" id="val_risk">0.12</span>
+                    <div class="field-group">
+                        <div class="field-header">
+                            <label class="field-label" for="risk">Device Fingerprint Risk</label>
+                            <span class="field-value" id="val_risk">0.08</span>
+                        </div>
+                        <input class="slider-track" type="range" id="risk" min="0.0" max="1.0" step="0.01" value="0.08" oninput="handleInputChange()">
                     </div>
-                    <input type="range" id="risk" min="0.0" max="1.0" step="0.01" value="0.12" oninput="updateDisplay()">
-                </div>
 
-                <div class="form-group">
-                    <div class="form-label">
-                        <span>Failed PIN / OTP Retries</span>
-                        <span class="form-val-display" id="val_retries">0</span>
+                    <div class="field-group">
+                        <div class="field-header">
+                            <label class="field-label" for="retries">PIN / OTP Failed Retries</label>
+                            <span class="field-value" id="val_retries">0</span>
+                        </div>
+                        <input class="slider-track" type="range" id="retries" min="0" max="5" step="1" value="0" oninput="handleInputChange()">
                     </div>
-                    <input type="range" id="retries" min="0" max="5" step="1" value="0" oninput="updateDisplay()">
                 </div>
 
-                <label class="form-label" style="margin-top: 1rem;">Select Inference Model:</label>
-                <select id="model_select">
-                    <option value="logistic">Regularized Logistic Regression (Adam)</option>
-                    <option value="tree">Decision Tree Classifier (Gini Impurity)</option>
-                </select>
-
-                <button class="btn-predict" onclick="predictTransaction()">Run Instant C++ Inference</button>
+                <!-- Single Primary CTA -->
+                <button type="button" class="btn-primary" onclick="scoreTransaction()">
+                    Score Transaction
+                </button>
             </div>
 
-            <!-- Right: Inference Result Display -->
-            <div class="card">
-                <div class="card-title">Real-Time Model Evaluation</div>
+            <!-- Right: Verdict & Telemetry Inspector -->
+            <div class="panel">
+                <div class="panel-heading">
+                    <span class="panel-title">Model Telemetry</span>
+                    <span style="font-family: var(--font-mono); font-size: 11px; color: var(--text-tertiary);" id="active_model_indicator">LOGISTIC</span>
+                </div>
 
-                <div class="result-box" id="result_box">
-                    <div class="badge-decision badge-safe" id="badge_decision">APPROVED</div>
-                    <div style="font-size: 0.9rem; color: var(--text-muted);">Fraud Probability Score</div>
-                    <div style="font-size: 2.5rem; font-weight: 800; font-family: 'JetBrains Mono', monospace; margin-top: 0.25rem;" id="score_display">
-                        0.02 %
+                <!-- Verdict Summary Box -->
+                <div class="verdict-box">
+                    <div class="verdict-header">
+                        <span style="font-size: 11px; font-family: var(--font-mono); color: var(--text-secondary);">DECISION VERDICT</span>
+                        <span class="verdict-badge pass" id="verdict_badge">APPROVED</span>
                     </div>
 
-                    <div class="prob-bar-container">
-                        <div class="prob-bar" id="prob_bar" style="width: 2%;"></div>
+                    <div class="score-row">
+                        <div class="score-number" id="probability_value">0.02%</div>
+                        <div class="score-sublabel" id="risk_category">Risk Category: Low</div>
                     </div>
 
-                    <div class="meta-grid">
-                        <div class="meta-item">
-                            <div class="meta-title">C++ Engine Latency</div>
-                            <div class="meta-val" id="meta_latency" style="color: var(--accent-cyan);">- µs</div>
-                        </div>
-                        <div class="meta-item">
-                            <div class="meta-title">Risk Tier</div>
-                            <div class="meta-val" id="meta_risk" style="color: var(--accent-emerald);">LOW</div>
-                        </div>
+                    <div class="threshold-bar">
+                        <div class="threshold-fill" id="threshold_fill" style="width: 2%;"></div>
                     </div>
                 </div>
 
-                <div class="benchmark-section">
-                    <div style="font-size: 0.9rem; font-weight: 700; margin-bottom: 0.5rem;">Live High-Throughput Stress Test</div>
-                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">
-                        Fire 500 parallel HTTP inference requests from your browser directly to the C++ REST socket server.
+                <!-- Telemetry Execution Metrics -->
+                <table class="telemetry-table">
+                    <tbody>
+                        <tr>
+                            <td>Inference Time</td>
+                            <td class="value" id="metric_latency">0.08 µs</td>
+                        </tr>
+                        <tr>
+                            <td>Inference Method</td>
+                            <td class="value" id="metric_method">POST /api/v1/predict</td>
+                        </tr>
+                        <tr>
+                            <td>Input Dimensions</td>
+                            <td class="value">6 Float64</td>
+                        </tr>
+                        <tr>
+                            <td>Preprocessing</td>
+                            <td class="value">StandardScaler (Z-Score)</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- High-Throughput Load Probe -->
+                <div class="probe-section">
+                    <div class="probe-section-title">Throughput Verification</div>
+                    <p class="probe-description">
+                        Dispatches 500 parallel HTTP inference requests from your client to test local TCP socket latency.
                     </p>
-                    <button class="btn-bench" onclick="runStressTest()">Fire 500 Live HTTP Inferences</button>
-                    <div class="bench-output" id="bench_output"></div>
+                    <button type="button" class="btn-secondary" onclick="runThroughputProbe()">
+                        Execute 500-Request Benchmark
+                    </button>
+                    <div class="probe-result" id="probe_result"></div>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        function updateDisplay() {
+        let currentModel = 'logistic';
+
+        function selectModel(model) {
+            currentModel = model;
+            document.getElementById('btn_model_logistic').classList.toggle('active', model === 'logistic');
+            document.getElementById('btn_model_tree').classList.toggle('active', model === 'tree');
+            document.getElementById('active_model_indicator').innerText = model === 'logistic' ? 'LOGISTIC' : 'DECISION_TREE';
+            scoreTransaction();
+        }
+
+        function handleInputChange() {
             document.getElementById('val_amount').innerText = '$' + parseFloat(document.getElementById('amount').value).toFixed(2);
-            document.getElementById('val_dist_home').innerText = document.getElementById('dist_home').value + ' km';
-            document.getElementById('val_dist_last').innerText = document.getElementById('dist_last').value + ' km';
-            document.getElementById('val_freq').innerText = document.getElementById('freq').value;
+            document.getElementById('val_dist_home').innerText = parseFloat(document.getElementById('dist_home').value).toFixed(1) + ' km';
+            document.getElementById('val_dist_last').innerText = parseFloat(document.getElementById('dist_last').value).toFixed(1) + ' km';
+            document.getElementById('val_freq').innerText = document.getElementById('freq').value + ' tx';
             document.getElementById('val_risk').innerText = parseFloat(document.getElementById('risk').value).toFixed(2);
             document.getElementById('val_retries').innerText = document.getElementById('retries').value;
         }
 
-        function loadScenario(type) {
-            if (type === 'safe') {
+        function applyPreset(type) {
+            if (type === 'grocery') {
                 document.getElementById('amount').value = 4.50;
                 document.getElementById('dist_home').value = 1.2;
                 document.getElementById('dist_last').value = 0.5;
                 document.getElementById('freq').value = 2;
                 document.getElementById('risk').value = 0.08;
                 document.getElementById('retries').value = 0;
-            } else if (type === 'suspicious') {
+            } else if (type === 'ecommerce') {
                 document.getElementById('amount').value = 450.00;
-                document.getElementById('dist_home').value = 65;
-                document.getElementById('dist_last').value = 45;
-                document.getElementById('freq').value = 8;
-                document.getElementById('risk').value = 0.52;
+                document.getElementById('dist_home').value = 65.0;
+                document.getElementById('dist_last').value = 45.0;
+                document.getElementById('freq').value = 7;
+                document.getElementById('risk').value = 0.45;
                 document.getElementById('retries').value = 1;
-            } else if (type === 'fraud') {
+            } else if (type === 'compromised') {
                 document.getElementById('amount').value = 1850.00;
-                document.getElementById('dist_home').value = 520;
-                document.getElementById('dist_last').value = 380;
+                document.getElementById('dist_home').value = 520.0;
+                document.getElementById('dist_last').value = 380.0;
                 document.getElementById('freq').value = 19;
                 document.getElementById('risk').value = 0.94;
                 document.getElementById('retries').value = 3;
             }
-            updateDisplay();
-            predictTransaction();
+            handleInputChange();
+            scoreTransaction();
         }
 
-        async function predictTransaction() {
+        async function scoreTransaction() {
             const features = [
                 parseFloat(document.getElementById('amount').value),
                 parseFloat(document.getElementById('dist_home').value),
@@ -551,80 +743,78 @@
                 parseFloat(document.getElementById('retries').value)
             ];
 
-            const model = document.getElementById('model_select').value;
-
             try {
                 const response = await fetch('/api/v1/predict', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ model: model, features: features })
+                    body: JSON.stringify({ model: currentModel, features: features })
                 });
 
+                if (!response.ok) return;
                 const data = await response.json();
-                renderResult(data);
+                renderVerdict(data);
             } catch (err) {
-                console.error("Inference call failed:", err);
+                console.error("Evaluation request failed:", err);
             }
         }
 
-        function renderResult(data) {
+        function renderVerdict(data) {
             const probPct = (data.fraud_probability * 100).toFixed(2);
-            document.getElementById('score_display').innerText = probPct + ' %';
-            
-            const probBar = document.getElementById('prob_bar');
-            probBar.style.width = Math.max(3, data.fraud_probability * 100) + '%';
+            document.getElementById('probability_value').innerText = probPct + '%';
 
-            const badge = document.getElementById('badge_decision');
-            const metaRisk = document.getElementById('meta_risk');
+            const badge = document.getElementById('verdict_badge');
+            const fill = document.getElementById('threshold_fill');
+            const category = document.getElementById('risk_category');
+
+            fill.style.width = Math.min(100, Math.max(2, data.fraud_probability * 100)) + '%';
 
             if (data.is_fraud) {
-                badge.className = 'badge-decision badge-fraud';
-                badge.innerText = 'BLOCKED (FRAUD)';
-                probBar.style.background = 'var(--accent-rose)';
-                metaRisk.innerText = data.risk_tier;
-                metaRisk.style.color = 'var(--accent-rose)';
+                badge.className = 'verdict-badge fail';
+                badge.innerText = 'FLAGGED';
+                fill.style.backgroundColor = 'var(--signal-fail)';
+                category.innerText = 'Risk Category: High Risk';
+                category.style.color = 'var(--signal-fail)';
             } else {
-                badge.className = 'badge-decision badge-safe';
-                badge.innerText = 'APPROVED (SAFE)';
-                probBar.style.background = 'var(--accent-emerald)';
-                metaRisk.innerText = data.risk_tier;
-                metaRisk.style.color = 'var(--accent-emerald)';
+                badge.className = 'verdict-badge pass';
+                badge.innerText = 'APPROVED';
+                fill.style.backgroundColor = 'var(--signal-pass)';
+                category.innerText = 'Risk Category: Low Risk';
+                category.style.color = 'var(--text-secondary)';
             }
 
-            document.getElementById('meta_latency').innerText = data.latency_microseconds.toFixed(2) + ' µs';
+            document.getElementById('metric_latency').innerText = data.latency_microseconds.toFixed(2) + ' µs';
         }
 
-        async function runStressTest() {
-            const output = document.getElementById('bench_output');
-            output.style.display = 'block';
-            output.innerText = "Firing 500 HTTP concurrent requests to C++ server...";
+        async function runThroughputProbe() {
+            const out = document.getElementById('probe_result');
+            out.style.display = 'block';
+            out.innerText = "Transmitting 500 requests...";
 
             const payload = JSON.stringify({
-                model: "logistic",
+                model: currentModel,
                 features: [120.0, 15.0, 5.0, 3.0, 0.2, 0.0]
             });
 
             const t0 = performance.now();
-            const requests = [];
+            const batch = [];
             for (let i = 0; i < 500; ++i) {
-                requests.push(fetch('/api/v1/predict', {
+                batch.push(fetch('/api/v1/predict', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: payload
                 }));
             }
 
-            await Promise.all(requests);
+            await Promise.all(batch);
             const totalMs = performance.now() - t0;
-            const reqPerSec = Math.round(500 / (totalMs / 1000));
+            const rps = Math.round(500 / (totalMs / 1000));
 
-            output.innerHTML = `Completed 500 HTTP requests in <strong>${totalMs.toFixed(1)} ms</strong><br>Browser HTTP Throughput: <strong>${reqPerSec} requests/sec</strong><br>Server core processing: Sub-microsecond.`;
+            out.innerHTML = `500 requests dispatched in <strong>${totalMs.toFixed(1)} ms</strong><br>Client throughput: <strong>${rps.toLocaleString()} req/s</strong><br>Engine computation: Sub-microsecond.`;
         }
 
-        // Run initial prediction on load
         window.addEventListener('load', () => {
-            updateDisplay();
-            predictTransaction();
+            handleInputChange();
+            scoreTransaction();
         });
     </script>
 </body>
