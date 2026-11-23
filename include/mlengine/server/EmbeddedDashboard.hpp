@@ -1,5 +1,4 @@
 #pragma once
-#include <string_view>
 
 namespace veloce {
 
@@ -11,30 +10,32 @@ inline constexpr const char* EMBEDDED_DASHBOARD_HTML = R"HTML(<!DOCTYPE html>
     <title>VeloceML • Real-Time Transaction Risk Evaluator</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-canvas: #090a0c;
-            --bg-surface: #111317;
-            --bg-surface-elevated: #171a20;
-            --bg-surface-hover: #1d2129;
+            /* Warm Editorial Ledger Palette */
+            --bg-canvas: #FAF9F6;
+            --bg-surface: #FFFFFF;
+            --bg-surface-inset: #F4F1EA;
+            --bg-surface-hover: #ECE8E0;
             
-            --border-subtle: #1e2229;
-            --border-strong: #2a303c;
-            --border-focus: #4b5563;
+            --border-hairline: #E5E1DA;
+            --border-strong: #CFC9BF;
+            --border-focus: #141517;
 
-            --text-primary: #f2f4f7;
-            --text-secondary: #9aa1ad;
-            --text-tertiary: #5e6673;
+            --text-ink: #141517;
+            --text-secondary: #5C626E;
+            --text-tertiary: #8A919E;
 
-            --signal-pass: #16a34a;
-            --signal-pass-bg: #092113;
-            --signal-pass-border: #14532d;
+            --signal-pass: #1D6F42;
+            --signal-pass-bg: #EEF7F1;
+            --signal-pass-border: #BCDBC6;
 
-            --signal-fail: #dc2626;
-            --signal-fail-bg: #220b0d;
-            --signal-fail-border: #7f1d1d;
+            --signal-fail: #B83A2F;
+            --signal-fail-bg: #FDF1EF;
+            --signal-fail-border: #F3C4BF;
 
+            --font-display: 'Instrument Serif', Georgia, serif;
             --font-sans: 'Geist', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
             --font-mono: 'JetBrains Mono', monospace;
         }
@@ -47,163 +48,184 @@ inline constexpr const char* EMBEDDED_DASHBOARD_HTML = R"HTML(<!DOCTYPE html>
 
         body {
             background-color: var(--bg-canvas);
-            color: var(--text-primary);
+            color: var(--text-ink);
             font-family: var(--font-sans);
-            font-size: 14px;
+            font-size: 13px;
             line-height: 1.5;
             -webkit-font-smoothing: antialiased;
-            padding: 32px 24px;
+            padding: 40px 24px;
             min-height: 100vh;
         }
 
         .shell {
-            max-width: 1240px;
+            max-width: 1200px;
             margin: 0 auto;
         }
 
-        /* ---------------- Header & Editorial Meta ---------------- */
-        header {
+        /* ---------------- Editorial Masthead ---------------- */
+        .masthead {
+            border-bottom: 2px solid var(--text-ink);
+            padding-bottom: 16px;
+            margin-bottom: 24px;
+        }
+
+        .masthead-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            font-family: var(--font-mono);
+            font-size: 10px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-hairline);
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .masthead-main {
             display: flex;
             justify-content: space-between;
             align-items: flex-end;
-            padding-bottom: 24px;
-            border-bottom: 1px solid var(--border-subtle);
-            margin-bottom: 24px;
             gap: 16px;
             flex-wrap: wrap;
         }
 
-        .header-title-group h1 {
-            font-size: 20px;
-            font-weight: 600;
-            letter-spacing: -0.02em;
-            color: var(--text-primary);
+        .masthead-titles h1 {
+            font-family: var(--font-display);
+            font-size: 38px;
+            font-weight: 400;
+            font-style: italic;
+            letter-spacing: -0.01em;
+            line-height: 1.05;
+            color: var(--text-ink);
             margin-bottom: 4px;
         }
 
-        .header-title-group p {
+        .masthead-titles p {
             font-size: 13px;
             color: var(--text-secondary);
+            font-weight: 500;
         }
 
-        .header-system-meta {
+        .masthead-badge {
             font-family: var(--font-mono);
             font-size: 11px;
-            color: var(--text-secondary);
+            color: var(--text-ink);
+            background: var(--bg-surface);
+            border: 1px solid var(--border-hairline);
+            padding: 6px 12px;
+            border-radius: 2px;
             display: flex;
             align-items: center;
-            gap: 12px;
-            background: var(--bg-surface);
-            padding: 6px 12px;
-            border: 1px solid var(--border-subtle);
-            border-radius: 4px;
+            gap: 8px;
         }
 
-        .status-indicator {
-            display: inline-block;
+        .indicator-dot {
             width: 6px;
             height: 6px;
             border-radius: 50%;
             background-color: var(--signal-pass);
         }
 
-        /* ---------------- Telemetry Bar ---------------- */
-        .telemetry-strip {
+        /* ---------------- Performance Ledger Strip ---------------- */
+        .ledger-strip {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            border: 1px solid var(--border-subtle);
+            border: 1px solid var(--border-hairline);
             background: var(--bg-surface);
-            border-radius: 4px;
             margin-bottom: 32px;
         }
 
         @media (max-width: 800px) {
-            .telemetry-strip {
+            .ledger-strip {
                 grid-template-columns: 1fr 1fr;
             }
         }
 
-        .telemetry-cell {
+        .ledger-cell {
             padding: 16px 20px;
-            border-right: 1px solid var(--border-subtle);
+            border-right: 1px solid var(--border-hairline);
         }
 
-        .telemetry-cell:last-child {
+        .ledger-cell:last-child {
             border-right: none;
         }
 
-        .telemetry-label {
-            font-size: 11px;
+        .ledger-cell-label {
             font-family: var(--font-mono);
+            font-size: 10px;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.08em;
             color: var(--text-tertiary);
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
 
-        .telemetry-value {
+        .ledger-cell-value {
             font-family: var(--font-mono);
-            font-size: 18px;
+            font-size: 17px;
             font-weight: 600;
-            color: var(--text-primary);
+            letter-spacing: -0.02em;
+            color: var(--text-ink);
         }
 
-        .telemetry-sub {
+        .ledger-cell-note {
             font-size: 11px;
             color: var(--text-secondary);
             margin-top: 2px;
         }
 
-        /* ---------------- Main Structured Split-View ---------------- */
-        .workbench-layout {
+        /* ---------------- Main Asymmetric Split Layout ---------------- */
+        .main-grid {
             display: grid;
-            grid-template-columns: 1.2fr 0.8fr;
+            grid-template-columns: 1.3fr 0.9fr;
             gap: 24px;
             align-items: start;
         }
 
         @media (max-width: 960px) {
-            .workbench-layout {
+            .main-grid {
                 grid-template-columns: 1fr;
             }
         }
 
-        .panel {
+        .sheet {
             background: var(--bg-surface);
-            border: 1px solid var(--border-subtle);
-            border-radius: 4px;
+            border: 1px solid var(--border-hairline);
             padding: 24px;
         }
 
-        .panel-heading {
+        .sheet-header {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            padding-bottom: 16px;
+            align-items: baseline;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-hairline);
             margin-bottom: 20px;
-            border-bottom: 1px solid var(--border-subtle);
         }
 
-        .panel-title {
-            font-size: 13px;
+        .sheet-title {
+            font-family: var(--font-mono);
+            font-size: 11px;
             font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.04em;
+            letter-spacing: 0.08em;
             color: var(--text-secondary);
         }
 
-        /* ---------------- Model Segmented Control ---------------- */
-        .segmented-control {
+        /* ---------------- Tab Selector: Model Architecture ---------------- */
+        .model-segmented-tabs {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            background: var(--bg-surface-elevated);
-            padding: 2px;
-            border: 1px solid var(--border-subtle);
-            border-radius: 4px;
-            margin-bottom: 24px;
+            border: 1px solid var(--border-hairline);
+            background: var(--bg-surface-inset);
+            padding: 3px;
+            margin-bottom: 20px;
         }
 
-        .segment-btn {
+        .tab-btn {
             background: transparent;
             border: none;
             color: var(--text-secondary);
@@ -212,480 +234,520 @@ inline constexpr const char* EMBEDDED_DASHBOARD_HTML = R"HTML(<!DOCTYPE html>
             font-weight: 500;
             padding: 8px 12px;
             cursor: pointer;
-            border-radius: 3px;
             transition: all 0.15s ease;
+            text-align: center;
         }
 
-        .segment-btn:hover {
-            color: var(--text-primary);
+        .tab-btn:hover {
+            color: var(--text-ink);
         }
 
-        .segment-btn.active {
+        .tab-btn.active {
             background: var(--bg-surface);
-            color: var(--text-primary);
+            color: var(--text-ink);
             font-weight: 600;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border-hairline);
         }
 
-        /* ---------------- Presets Strip ---------------- */
-        .presets-row {
+        /* ---------------- Historical Case Reference Chips ---------------- */
+        .case-chips {
             display: flex;
-            align-items: center;
+            align-items: baseline;
             gap: 8px;
             margin-bottom: 24px;
             flex-wrap: wrap;
         }
 
-        .presets-label {
-            font-size: 11px;
-            color: var(--text-tertiary);
+        .case-label {
             font-family: var(--font-mono);
+            font-size: 10px;
             text-transform: uppercase;
-            margin-right: 4px;
+            letter-spacing: 0.06em;
+            color: var(--text-tertiary);
         }
 
-        .preset-chip {
+        .chip-btn {
             background: transparent;
-            border: 1px solid var(--border-subtle);
+            border: 1px solid var(--border-hairline);
             color: var(--text-secondary);
-            font-size: 12px;
-            padding: 4px 10px;
-            border-radius: 3px;
+            font-size: 11px;
+            font-family: var(--font-mono);
+            padding: 4px 8px;
             cursor: pointer;
-            font-family: var(--font-sans);
+            border-radius: 2px;
             transition: all 0.15s ease;
         }
 
-        .preset-chip:hover {
+        .chip-btn:hover {
             border-color: var(--border-strong);
-            color: var(--text-primary);
-            background: var(--bg-surface-elevated);
+            background: var(--bg-surface-inset);
+            color: var(--text-ink);
         }
 
-        /* ---------------- Form Fields ---------------- */
-        .fields-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px 16px;
+        /* ---------------- Feature Parameter Table Rows ---------------- */
+        .feature-rows {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
             margin-bottom: 28px;
         }
 
-        @media (max-width: 640px) {
-            .fields-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .field-group {
+        .feature-item {
             display: flex;
             flex-direction: column;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-hairline);
         }
 
-        .field-header {
+        .feature-meta {
             display: flex;
             justify-content: space-between;
             align-items: baseline;
             margin-bottom: 8px;
         }
 
-        .field-label {
-            font-size: 12px;
-            font-weight: 500;
-            color: var(--text-primary);
+        .feature-title-group {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
         }
 
-        .field-value {
+        .feature-name {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-ink);
+        }
+
+        .feature-desc {
+            font-size: 11px;
+            color: var(--text-tertiary);
+        }
+
+        .feature-reading {
             font-family: var(--font-mono);
-            font-size: 12px;
-            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-ink);
         }
 
-        .slider-track {
+        .range-slider {
             -webkit-appearance: none;
             width: 100%;
-            height: 4px;
-            background: var(--bg-surface-elevated);
-            border-radius: 2px;
+            height: 3px;
+            background: var(--border-hairline);
             outline: none;
-            border: 1px solid var(--border-subtle);
             cursor: pointer;
+            border-radius: 0;
         }
 
-        .slider-track::-webkit-slider-thumb {
+        .range-slider::-webkit-slider-thumb {
             -webkit-appearance: none;
-            width: 14px;
-            height: 14px;
-            border-radius: 2px;
-            background: var(--text-primary);
+            width: 12px;
+            height: 12px;
+            background: var(--text-ink);
+            border: 1px solid var(--text-ink);
             cursor: pointer;
-            border: none;
             transition: transform 0.1s ease;
         }
 
-        .slider-track::-webkit-slider-thumb:hover {
-            transform: scale(1.15);
+        .range-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
         }
 
-        /* ---------------- Single Primary CTA ---------------- */
-        .btn-primary {
+        /* ---------------- Single Primary Solid Action CTA ---------------- */
+        .btn-evaluate {
             display: block;
             width: 100%;
-            background: var(--text-primary);
+            background: var(--text-ink);
             color: var(--bg-canvas);
-            border: 1px solid var(--text-primary);
-            border-radius: 4px;
+            border: 1px solid var(--text-ink);
             padding: 12px 16px;
+            font-family: var(--font-sans);
             font-size: 13px;
             font-weight: 600;
-            font-family: var(--font-sans);
-            letter-spacing: -0.01em;
+            letter-spacing: 0.02em;
             cursor: pointer;
-            transition: opacity 0.15s ease;
+            text-align: center;
+            border-radius: 2px;
+            transition: all 0.15s ease;
         }
 
-        .btn-primary:hover {
-            opacity: 0.9;
+        .btn-evaluate:hover {
+            background: #252830;
+            border-color: #252830;
         }
 
-        .btn-primary:active {
-            opacity: 0.8;
+        .btn-evaluate:active {
+            background: #000000;
         }
 
-        /* ---------------- Inspector / Verdict Panel ---------------- */
-        .verdict-box {
-            border: 1px solid var(--border-subtle);
-            background: var(--bg-surface-elevated);
-            border-radius: 4px;
+        /* ---------------- Right: Decision Certificate Slip ---------------- */
+        .ticket-slip {
+            border: 1px solid var(--border-hairline);
+            background: var(--bg-surface-inset);
             padding: 20px;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
 
-        .verdict-header {
+        .ticket-header {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-
-        .verdict-badge {
-            font-family: var(--font-mono);
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            padding: 3px 8px;
-            border-radius: 3px;
-            display: inline-block;
-        }
-
-        .verdict-badge.pass {
-            background: var(--signal-pass-bg);
-            color: var(--signal-pass);
-            border: 1px solid var(--signal-pass-border);
-        }
-
-        .verdict-badge.fail {
-            background: var(--signal-fail-bg);
-            color: var(--signal-fail);
-            border: 1px solid var(--signal-fail-border);
-        }
-
-        .score-row {
-            display: flex;
             align-items: baseline;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px dashed var(--border-strong);
+        }
+
+        .ticket-stamp {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            padding: 3px 6px;
+            border: 1px solid currentColor;
+            display: inline-block;
+            font-weight: 600;
+        }
+
+        .ticket-stamp.pass {
+            color: var(--signal-pass);
+            background: var(--signal-pass-bg);
+            border-color: var(--signal-pass-border);
+        }
+
+        .ticket-stamp.fail {
+            color: var(--signal-fail);
+            background: var(--signal-fail-bg);
+            border-color: var(--signal-fail-border);
+        }
+
+        .probability-hero {
+            display: flex;
             justify-content: space-between;
+            align-items: baseline;
             margin-bottom: 12px;
         }
 
-        .score-number {
+        .probability-metric {
             font-family: var(--font-mono);
-            font-size: 32px;
+            font-size: 36px;
             font-weight: 600;
-            letter-spacing: -0.02em;
-            color: var(--text-primary);
+            letter-spacing: -0.03em;
+            color: var(--text-ink);
         }
 
-        .score-sublabel {
-            font-size: 12px;
+        .risk-tag {
+            font-size: 11px;
+            font-family: var(--font-mono);
+            font-weight: 500;
             color: var(--text-secondary);
         }
 
-        .threshold-bar {
+        .rule-bar {
             width: 100%;
             height: 4px;
-            background: var(--bg-surface);
-            border: 1px solid var(--border-subtle);
-            border-radius: 2px;
+            background: #E0DDD5;
             overflow: hidden;
         }
 
-        .threshold-fill {
+        .rule-bar-fill {
             height: 100%;
             background: var(--signal-pass);
             width: 0%;
             transition: width 0.2s ease, background-color 0.2s ease;
         }
 
-        /* ---------------- Telemetry Breakdown Table ---------------- */
-        .telemetry-table {
+        /* ---------------- Structured Inspection Table ---------------- */
+        .audit-table {
             width: 100%;
             border-collapse: collapse;
             font-size: 12px;
             margin-bottom: 24px;
         }
 
-        .telemetry-table tr {
-            border-bottom: 1px solid var(--border-subtle);
+        .audit-table tr {
+            border-bottom: 1px solid var(--border-hairline);
         }
 
-        .telemetry-table td {
+        .audit-table td {
             padding: 10px 0;
             color: var(--text-secondary);
         }
 
-        .telemetry-table td.value {
+        .audit-table td.numeric {
             text-align: right;
             font-family: var(--font-mono);
-            color: var(--text-primary);
+            color: var(--text-ink);
             font-weight: 500;
         }
 
-        /* ---------------- Stress Probe Block ---------------- */
-        .probe-section {
-            border-top: 1px solid var(--border-subtle);
-            padding-top: 20px;
+        /* ---------------- Secondary Diagnostic Probe ---------------- */
+        .diagnostic-box {
+            border-top: 1px solid var(--border-hairline);
+            padding-top: 16px;
         }
 
-        .probe-section-title {
-            font-size: 12px;
-            font-weight: 600;
+        .diagnostic-title {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
             color: var(--text-secondary);
             margin-bottom: 6px;
         }
 
-        .probe-description {
-            font-size: 12px;
-            color: var(--text-tertiary);
+        .diagnostic-desc {
+            font-size: 11px;
+            color: var(--text-secondary);
             margin-bottom: 12px;
             line-height: 1.4;
         }
 
-        .btn-secondary {
+        .btn-ghost-probe {
+            width: 100%;
             background: transparent;
             border: 1px solid var(--border-strong);
-            color: var(--text-secondary);
-            border-radius: 4px;
-            padding: 8px 14px;
+            color: var(--text-ink);
+            font-family: var(--font-sans);
             font-size: 12px;
             font-weight: 500;
-            font-family: var(--font-sans);
+            padding: 8px 12px;
             cursor: pointer;
-            width: 100%;
+            border-radius: 2px;
             transition: all 0.15s ease;
         }
 
-        .btn-secondary:hover {
-            color: var(--text-primary);
-            background: var(--bg-surface-elevated);
-            border-color: var(--border-focus);
+        .btn-ghost-probe:hover {
+            background: var(--bg-surface-inset);
+            border-color: var(--text-ink);
         }
 
-        .probe-result {
-            margin-top: 12px;
+        .probe-log {
+            margin-top: 10px;
             padding: 10px 12px;
-            background: var(--bg-surface-elevated);
-            border: 1px solid var(--border-subtle);
-            border-radius: 4px;
+            background: var(--bg-surface-inset);
+            border: 1px solid var(--border-hairline);
             font-family: var(--font-mono);
             font-size: 11px;
             color: var(--text-secondary);
             display: none;
-            line-height: 1.6;
+            line-height: 1.5;
         }
 
-        .probe-result strong {
-            color: var(--text-primary);
+        .probe-log strong {
+            color: var(--text-ink);
         }
     </style>
 </head>
 <body>
     <div class="shell">
-        <!-- Editorial Header -->
-        <header>
-            <div class="header-title-group">
-                <h1>Transaction Risk Scoring Service</h1>
-                <p>C++20 In-Memory Inference • Microsecond Fraud Detection</p>
+        <!-- Masthead -->
+        <header class="masthead">
+            <div class="masthead-meta">
+                <span>VELOCEML SPECIFICATION • RELEASE 1.0</span>
+                <span>KERNEL: C++20 IN-MEMORY DAEMON</span>
+                <span>ENDPOINT: TCP / 127.0.0.1:8080</span>
             </div>
-            <div class="header-system-meta">
-                <span class="status-indicator"></span>
-                <span>DAEMON ACTIVE • PORT 8080</span>
+            <div class="masthead-main">
+                <div class="masthead-titles">
+                    <h1>Transaction Risk Assessment Engine</h1>
+                    <p>Sub-microsecond fraud score classification on 6-dimensional financial feature vectors</p>
+                </div>
+                <div class="masthead-badge">
+                    <span class="indicator-dot"></span>
+                    <span>ONLINE • HOST READY</span>
+                </div>
             </div>
         </header>
 
-        <!-- Structured Telemetry Strip -->
-        <div class="telemetry-strip">
-            <div class="telemetry-cell">
-                <div class="telemetry-label">Kernel Latency (p50)</div>
-                <div class="telemetry-value">0.08 µs</div>
-                <div class="telemetry-sub">Apple Silicon / ARM64</div>
+        <!-- Performance Ledger Strip -->
+        <div class="ledger-strip">
+            <div class="ledger-cell">
+                <div class="ledger-cell-label">Median Latency (p50)</div>
+                <div class="ledger-cell-value">0.08 µs</div>
+                <div class="ledger-cell-note">80 nanoseconds native</div>
             </div>
-            <div class="telemetry-cell">
-                <div class="telemetry-label">Throughput Capacity</div>
-                <div class="telemetry-value">5.64M req/s</div>
-                <div class="telemetry-sub">Single Core CPU Bound</div>
+            <div class="ledger-cell">
+                <div class="ledger-cell-label">Throughput Capacity</div>
+                <div class="ledger-cell-value">5,648,361 req/s</div>
+                <div class="ledger-cell-note">Single-core CPU bound</div>
             </div>
-            <div class="telemetry-cell">
-                <div class="telemetry-label">Active Weights</div>
-                <div class="telemetry-value">142 KB</div>
-                <div class="telemetry-sub">Zero Allocation Serving</div>
+            <div class="ledger-cell">
+                <div class="ledger-cell-label">Memory Overhead</div>
+                <div class="ledger-cell-value">142 KB</div>
+                <div class="ledger-cell-note">Contiguous row-major buffer</div>
             </div>
-            <div class="telemetry-cell">
-                <div class="telemetry-label">Decision Boundary</div>
-                <div class="telemetry-value">Threshold 0.50</div>
-                <div class="telemetry-sub">Calibrated Sigmoid / Gini</div>
+            <div class="ledger-cell">
+                <div class="ledger-cell-label">Decision Boundary</div>
+                <div class="ledger-cell-value">Threshold 0.50</div>
+                <div class="ledger-cell-note">Calibrated binary logistic</div>
             </div>
         </div>
 
-        <!-- Main Workbench Layout -->
-        <div class="workbench-layout">
-            <!-- Left: Transaction Vector Controls -->
-            <div class="panel">
-                <div class="panel-heading">
-                    <span class="panel-title">Vector Inputs</span>
-                    <span style="font-family: var(--font-mono); font-size: 11px; color: var(--text-tertiary);">R^6 DIMENSIONS</span>
+        <!-- Asymmetric Split Grid -->
+        <div class="main-grid">
+            <!-- Left Panel: Input Vector Ledger -->
+            <div class="sheet">
+                <div class="sheet-header">
+                    <span class="sheet-title">Input Vector Manifest</span>
+                    <span style="font-family: var(--font-mono); font-size: 10px; color: var(--text-tertiary);">DIM: R^6</span>
                 </div>
 
-                <!-- Model Selector (Segmented Tab) -->
-                <div class="segmented-control">
-                    <button type="button" class="segment-btn active" id="btn_model_logistic" onclick="selectModel('logistic')">
+                <!-- Model Selection Tabs -->
+                <div class="model-segmented-tabs">
+                    <button type="button" class="tab-btn active" id="btn_model_logistic" onclick="selectModel('logistic')">
                         Logistic Regression (Adam)
                     </button>
-                    <button type="button" class="segment-btn" id="btn_model_tree" onclick="selectModel('tree')">
-                        Decision Tree (Gini)
+                    <button type="button" class="tab-btn" id="btn_model_tree" onclick="selectModel('tree')">
+                        Decision Tree (Gini Impurity)
                     </button>
                 </div>
 
-                <!-- Benchmarking Presets -->
-                <div class="presets-row">
-                    <span class="presets-label">Presets:</span>
-                    <button type="button" class="preset-chip" onclick="applyPreset('grocery')">Grocery ($4.50)</button>
-                    <button type="button" class="preset-chip" onclick="applyPreset('ecommerce')">E-Commerce ($450)</button>
-                    <button type="button" class="preset-chip" onclick="applyPreset('compromised')">Cross-Border ($1,850)</button>
+                <!-- Case Reference Chips -->
+                <div class="case-chips">
+                    <span class="case-label">Reference Cases:</span>
+                    <button type="button" class="chip-btn" onclick="applyPreset('grocery')">01: Domestic Grocery ($4.50)</button>
+                    <button type="button" class="chip-btn" onclick="applyPreset('ecommerce')">02: Online Electronics ($450.00)</button>
+                    <button type="button" class="chip-btn" onclick="applyPreset('compromised')">03: Cross-Border ($1,850.00)</button>
                 </div>
 
-                <!-- 6 Input Sliders (4/8px Scale) -->
-                <div class="fields-grid">
-                    <div class="field-group">
-                        <div class="field-header">
-                            <label class="field-label" for="amount">Transaction Amount</label>
-                            <span class="field-value" id="val_amount">$4.50</span>
+                <!-- 6 Tabular Feature Sliders -->
+                <div class="feature-rows">
+                    <div class="feature-item">
+                        <div class="feature-meta">
+                            <div class="feature-title-group">
+                                <span class="feature-name">Transaction Amount</span>
+                                <span class="feature-desc">Nominal USD</span>
+                            </div>
+                            <span class="feature-reading" id="val_amount">$4.50</span>
                         </div>
-                        <input class="slider-track" type="range" id="amount" min="1" max="3000" step="0.5" value="4.5" oninput="handleInputChange()">
+                        <input class="range-slider" type="range" id="amount" min="1" max="3000" step="0.5" value="4.5" oninput="handleInputChange()">
                     </div>
 
-                    <div class="field-group">
-                        <div class="field-header">
-                            <label class="field-label" for="dist_home">Distance from Home</label>
-                            <span class="field-value" id="val_dist_home">1.2 km</span>
+                    <div class="feature-item">
+                        <div class="feature-meta">
+                            <div class="feature-title-group">
+                                <span class="feature-name">Distance from Home</span>
+                                <span class="feature-desc">Geodesic distance</span>
+                            </div>
+                            <span class="feature-reading" id="val_dist_home">1.2 km</span>
                         </div>
-                        <input class="slider-track" type="range" id="dist_home" min="0" max="800" step="1" value="1.2" oninput="handleInputChange()">
+                        <input class="range-slider" type="range" id="dist_home" min="0" max="800" step="1" value="1.2" oninput="handleInputChange()">
                     </div>
 
-                    <div class="field-group">
-                        <div class="field-header">
-                            <label class="field-label" for="dist_last">Distance from Last Tx</label>
-                            <span class="field-value" id="val_dist_last">0.5 km</span>
+                    <div class="feature-item">
+                        <div class="feature-meta">
+                            <div class="feature-title-group">
+                                <span class="feature-name">Distance from Last Tx</span>
+                                <span class="feature-desc">Velocity check</span>
+                            </div>
+                            <span class="feature-reading" id="val_dist_last">0.5 km</span>
                         </div>
-                        <input class="slider-track" type="range" id="dist_last" min="0" max="800" step="1" value="0.5" oninput="handleInputChange()">
+                        <input class="range-slider" type="range" id="dist_last" min="0" max="800" step="1" value="0.5" oninput="handleInputChange()">
                     </div>
 
-                    <div class="field-group">
-                        <div class="field-header">
-                            <label class="field-label" for="freq">Velocity (24h Frequency)</label>
-                            <span class="field-value" id="val_freq">2 tx</span>
+                    <div class="feature-item">
+                        <div class="feature-meta">
+                            <div class="feature-title-group">
+                                <span class="feature-name">24h Velocity</span>
+                                <span class="feature-desc">Daily swipe frequency</span>
+                            </div>
+                            <span class="feature-reading" id="val_freq">2 tx</span>
                         </div>
-                        <input class="slider-track" type="range" id="freq" min="1" max="30" step="1" value="2" oninput="handleInputChange()">
+                        <input class="range-slider" type="range" id="freq" min="1" max="30" step="1" value="2" oninput="handleInputChange()">
                     </div>
 
-                    <div class="field-group">
-                        <div class="field-header">
-                            <label class="field-label" for="risk">Device Fingerprint Risk</label>
-                            <span class="field-value" id="val_risk">0.08</span>
+                    <div class="feature-item">
+                        <div class="feature-meta">
+                            <div class="feature-title-group">
+                                <span class="feature-name">Device Fingerprint Risk</span>
+                                <span class="feature-desc">Entropy score [0, 1]</span>
+                            </div>
+                            <span class="feature-reading" id="val_risk">0.08</span>
                         </div>
-                        <input class="slider-track" type="range" id="risk" min="0.0" max="1.0" step="0.01" value="0.08" oninput="handleInputChange()">
+                        <input class="range-slider" type="range" id="risk" min="0.0" max="1.0" step="0.01" value="0.08" oninput="handleInputChange()">
                     </div>
 
-                    <div class="field-group">
-                        <div class="field-header">
-                            <label class="field-label" for="retries">PIN / OTP Failed Retries</label>
-                            <span class="field-value" id="val_retries">0</span>
+                    <div class="feature-item">
+                        <div class="feature-meta">
+                            <div class="feature-title-group">
+                                <span class="feature-name">Failed PIN / OTP Retries</span>
+                                <span class="feature-desc">Authentication retries</span>
+                            </div>
+                            <span class="feature-reading" id="val_retries">0</span>
                         </div>
-                        <input class="slider-track" type="range" id="retries" min="0" max="5" step="1" value="0" oninput="handleInputChange()">
+                        <input class="range-slider" type="range" id="retries" min="0" max="5" step="1" value="0" oninput="handleInputChange()">
                     </div>
                 </div>
 
-                <!-- Single Primary CTA -->
-                <button type="button" class="btn-primary" onclick="scoreTransaction()">
-                    Score Transaction
+                <!-- Single Primary Filled Action CTA -->
+                <button type="button" class="btn-evaluate" onclick="scoreTransaction()">
+                    Evaluate Transaction Vector
                 </button>
             </div>
 
-            <!-- Right: Verdict & Telemetry Inspector -->
-            <div class="panel">
-                <div class="panel-heading">
-                    <span class="panel-title">Model Telemetry</span>
-                    <span style="font-family: var(--font-mono); font-size: 11px; color: var(--text-tertiary);" id="active_model_indicator">LOGISTIC</span>
+            <!-- Right Panel: Evaluation Ledger & Certificate -->
+            <div class="sheet">
+                <div class="sheet-header">
+                    <span class="sheet-title">Audit Ledger & Verdict</span>
+                    <span style="font-family: var(--font-mono); font-size: 10px; color: var(--text-tertiary);" id="active_model_indicator">LOGISTIC</span>
                 </div>
 
-                <!-- Verdict Summary Box -->
-                <div class="verdict-box">
-                    <div class="verdict-header">
-                        <span style="font-size: 11px; font-family: var(--font-mono); color: var(--text-secondary);">DECISION VERDICT</span>
-                        <span class="verdict-badge pass" id="verdict_badge">APPROVED</span>
+                <!-- Ticket Slip Box -->
+                <div class="ticket-slip">
+                    <div class="ticket-header">
+                        <span style="font-family: var(--font-mono); font-size: 10px; color: var(--text-secondary); text-transform: uppercase;">
+                            CLASSIFICATION STAMP
+                        </span>
+                        <span class="ticket-stamp pass" id="verdict_badge">APPROVED</span>
                     </div>
 
-                    <div class="score-row">
-                        <div class="score-number" id="probability_value">0.02%</div>
-                        <div class="score-sublabel" id="risk_category">Risk Category: Low</div>
+                    <div class="probability-hero">
+                        <div class="probability-metric" id="probability_value">0.02%</div>
+                        <div class="risk-tag" id="risk_category">Risk Category: Low Risk</div>
                     </div>
 
-                    <div class="threshold-bar">
-                        <div class="threshold-fill" id="threshold_fill" style="width: 2%;"></div>
+                    <div class="rule-bar">
+                        <div class="rule-bar-fill" id="threshold_fill" style="width: 2%;"></div>
                     </div>
                 </div>
 
-                <!-- Telemetry Execution Metrics -->
-                <table class="telemetry-table">
+                <!-- Telemetry Inspection Table -->
+                <table class="audit-table">
                     <tbody>
                         <tr>
-                            <td>Inference Time</td>
-                            <td class="value" id="metric_latency">0.08 µs</td>
+                            <td>Inference Kernel Latency</td>
+                            <td class="numeric" id="metric_latency">0.08 µs</td>
                         </tr>
                         <tr>
-                            <td>Inference Method</td>
-                            <td class="value" id="metric_method">POST /api/v1/predict</td>
+                            <td>REST Dispatch Method</td>
+                            <td class="numeric">POST /api/v1/predict</td>
                         </tr>
                         <tr>
-                            <td>Input Dimensions</td>
-                            <td class="value">6 Float64</td>
+                            <td>Vector Architecture</td>
+                            <td class="numeric">6 x Float64 Contiguous</td>
                         </tr>
                         <tr>
-                            <td>Preprocessing</td>
-                            <td class="value">StandardScaler (Z-Score)</td>
+                            <td>In-Memory Preprocessor</td>
+                            <td class="numeric">StandardScaler (Z-Score)</td>
+                        </tr>
+                        <tr>
+                            <td>Model Weight Format</td>
+                            <td class="numeric">VeloceML Binary v1</td>
                         </tr>
                     </tbody>
                 </table>
 
-                <!-- High-Throughput Load Probe -->
-                <div class="probe-section">
-                    <div class="probe-section-title">Throughput Verification</div>
-                    <p class="probe-description">
-                        Dispatches 500 parallel HTTP inference requests from your client to test local TCP socket latency.
+                <!-- Secondary Technical Diagnostic -->
+                <div class="diagnostic-box">
+                    <div class="diagnostic-title">Throughput Diagnostic Probe</div>
+                    <p class="diagnostic-desc">
+                        Fires 500 parallel HTTP requests against the native socket daemon to measure loopback serialization and IPC latency.
                     </p>
-                    <button type="button" class="btn-secondary" onclick="runThroughputProbe()">
-                        Execute 500-Request Benchmark
+                    <button type="button" class="btn-ghost-probe" onclick="runThroughputProbe()">
+                        Execute 500-Request Client Probe
                     </button>
-                    <div class="probe-result" id="probe_result"></div>
+                    <div class="probe-log" id="probe_result"></div>
                 </div>
             </div>
         </div>
@@ -774,13 +836,13 @@ inline constexpr const char* EMBEDDED_DASHBOARD_HTML = R"HTML(<!DOCTYPE html>
             fill.style.width = Math.min(100, Math.max(2, data.fraud_probability * 100)) + '%';
 
             if (data.is_fraud) {
-                badge.className = 'verdict-badge fail';
+                badge.className = 'ticket-stamp fail';
                 badge.innerText = 'FLAGGED';
                 fill.style.backgroundColor = 'var(--signal-fail)';
                 category.innerText = 'Risk Category: High Risk';
                 category.style.color = 'var(--signal-fail)';
             } else {
-                badge.className = 'verdict-badge pass';
+                badge.className = 'ticket-stamp pass';
                 badge.innerText = 'APPROVED';
                 fill.style.backgroundColor = 'var(--signal-pass)';
                 category.innerText = 'Risk Category: Low Risk';
@@ -814,7 +876,7 @@ inline constexpr const char* EMBEDDED_DASHBOARD_HTML = R"HTML(<!DOCTYPE html>
             const totalMs = performance.now() - t0;
             const rps = Math.round(500 / (totalMs / 1000));
 
-            out.innerHTML = `500 requests dispatched in <strong>${totalMs.toFixed(1)} ms</strong><br>Client throughput: <strong>${rps.toLocaleString()} req/s</strong><br>Engine computation: Sub-microsecond.`;
+            out.innerHTML = `500 requests dispatched in <strong>${totalMs.toFixed(1)} ms</strong><br>Client throughput: <strong>${rps.toLocaleString()} req/s</strong><br>Kernel computation: Sub-microsecond.`;
         }
 
         window.addEventListener('load', () => {
@@ -823,6 +885,7 @@ inline constexpr const char* EMBEDDED_DASHBOARD_HTML = R"HTML(<!DOCTYPE html>
         });
     </script>
 </body>
-</html>)HTML";
+</html>
+)HTML";
 
 } // namespace veloce
