@@ -1,0 +1,7 @@
+/Users/bhawanshsingh/Desktop/AI project 1/build/CMakeFiles/veloce_ml.dir
+/Users/bhawanshsingh/Desktop/AI project 1/build/CMakeFiles/veloce_train.dir
+/Users/bhawanshsingh/Desktop/AI project 1/build/CMakeFiles/veloce_server.dir
+/Users/bhawanshsingh/Desktop/AI project 1/build/CMakeFiles/veloce_tests.dir
+/Users/bhawanshsingh/Desktop/AI project 1/build/CMakeFiles/veloce_benchmark.dir
+/Users/bhawanshsingh/Desktop/AI project 1/build/CMakeFiles/edit_cache.dir
+/Users/bhawanshsingh/Desktop/AI project 1/build/CMakeFiles/rebuild_cache.dir
