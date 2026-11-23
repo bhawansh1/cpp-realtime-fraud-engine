@@ -37,6 +37,9 @@ target_link_libraries(veloce_train PRIVATE veloce_ml)
 add_executable(veloce_server src/server/main_server.cpp)
 target_link_libraries(veloce_server PRIVATE veloce_ml)
 
+# Automatically copy web directory to build output
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/web DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+
 # 3. Unit & Integration Test Suite
 add_executable(veloce_tests
     tests/test_main.cpp

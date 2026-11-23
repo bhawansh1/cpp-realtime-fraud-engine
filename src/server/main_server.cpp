@@ -1,4 +1,5 @@
 #include "mlengine/server/HttpServer.hpp"
+#include "mlengine/server/EmbeddedDashboard.hpp"
 #include "mlengine/models/LogisticRegression.hpp"
 #include "mlengine/models/DecisionTree.hpp"
 #include "mlengine/data/Dataset.hpp"
@@ -30,21 +31,29 @@ int main(int argc, char* argv[]) {
     std::cout << "        VeloceML High-Performance C++ Server           \n";
     std::cout << "========================================================\n\n";
 
-    // Ensure models directory exists
-    std::filesystem::create_directories("models");
+    // Locate models directory (supports running from repo root or build/)
+    std::string models_dir = "models";
+    if (!std::filesystem::exists("models") && std::filesystem::exists("../models")) {
+        models_dir = "../models";
+    }
+    std::filesystem::create_directories(models_dir);
+
+    std::string log_model_path = models_dir + "/fraud_logistic.bin";
+    std::string tree_model_path = models_dir + "/fraud_tree.bin";
+    std::string scaler_path = models_dir + "/fraud_scaler.bin";
 
     auto scaler = std::make_shared<StandardScaler>();
     auto log_model = std::make_shared<LogisticRegression>();
     auto tree_model = std::make_shared<DecisionTree>();
 
-    // Self-healing: if models are not yet on disk, train them automatically
-    if (!std::filesystem::exists("models/fraud_logistic.bin") ||
-        !std::filesystem::exists("models/fraud_tree.bin") ||
-        !std::filesystem::exists("models/fraud_scaler.bin")) {
+    // Self-healing: if models are not on disk, train them automatically
+    if (!std::filesystem::exists(log_model_path) ||
+        !std::filesystem::exists(tree_model_path) ||
+        !std::filesystem::exists(scaler_path)) {
         std::cout << "[*] Models not found on disk. Initializing and training models now...\n";
         auto [X, y] = Dataset::generate_synthetic_fraud_dataset(4000, 6, 0.15, 42);
         Matrix X_scaled = scaler->fit_transform(X);
-        scaler->save("models/fraud_scaler.bin");
+        scaler->save(scaler_path);
 
         LogisticConfig log_cfg;
         log_cfg.learning_rate = 0.05;
@@ -52,20 +61,20 @@ int main(int argc, char* argv[]) {
         log_cfg.use_adam = true;
         log_model = std::make_shared<LogisticRegression>(log_cfg);
         log_model->fit(X_scaled, y);
-        log_model->save("models/fraud_logistic.bin");
+        log_model->save(log_model_path);
 
         DecisionTreeConfig tree_cfg;
         tree_cfg.max_depth = 8;
         tree_cfg.min_samples_split = 5;
         tree_model = std::make_shared<DecisionTree>(tree_cfg);
         tree_model->fit(X_scaled, y);
-        tree_model->save("models/fraud_tree.bin");
-        std::cout << "[*] Initial training complete.\n";
+        tree_model->save(tree_model_path);
+        std::cout << "[*] Initial training complete. Models saved to " << models_dir << "/\n";
     } else {
-        std::cout << "[*] Loading pre-trained models from disk...\n";
-        scaler->load("models/fraud_scaler.bin");
-        log_model->load("models/fraud_logistic.bin");
-        tree_model->load("models/fraud_tree.bin");
+        std::cout << "[*] Loading pre-trained models from " << models_dir << "/...\n";
+        scaler->load(scaler_path);
+        log_model->load(log_model_path);
+        tree_model->load(tree_model_path);
     }
 
     std::cout << "[*] Models successfully loaded into memory.\n";
@@ -76,12 +85,19 @@ int main(int argc, char* argv[]) {
     server.register_model("logistic", log_model);
     server.register_model("tree", tree_model);
 
-    // Load static HTML UI dashboard
+    // Load static HTML UI dashboard (with fallback to embedded binary string)
     std::string html_content = read_file_to_string("web/index.html");
-    if (!html_content.empty()) {
-        server.set_static_html(html_content);
-        std::cout << "[*] Web dashboard loaded from web/index.html\n";
+    if (html_content.empty()) {
+        html_content = read_file_to_string("../web/index.html");
     }
+    if (html_content.empty()) {
+        html_content = std::string(EMBEDDED_DASHBOARD_HTML);
+        std::cout << "[*] Web dashboard loaded from built-in binary asset (EmbeddedDashboard.hpp)\n";
+    } else {
+        std::cout << "[*] Web dashboard loaded from disk\n";
+    }
+
+    server.set_static_html(html_content);
 
     std::cout << "\n>>> SERVER READY: Open http://localhost:" << port << " in your browser! <<<\n";
     std::cout << "Endpoints active:\n";
