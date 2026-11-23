@@ -203,8 +203,8 @@ $$Gain = G(S) - \left( \frac{|S_L|}{|S|} G(S_L) + \frac{|S_R|}{|S|} G(S_R) \righ
 
 ### 1. Build the Project
 ```bash
-git clone https://github.com/your-username/veloce-ml.git
-cd veloce-ml
+git clone https://github.com/your-username/cpp-realtime-fraud-engine.git
+cd cpp-realtime-fraud-engine
 
 mkdir build && cd build
 cmake -DCMAKE_BUILD_TYPE=Release ..
