@@ -1,4 +1,16 @@
+# Build directory and compilation database
 build/
+compile_commands.json
+.cache/
+.clangd/
+
+# OS generated files
 .DS_Store
+Thumbs.db
+
+# Serialized model weights & runtime logs
 *.bin
 *.log
+
+# Generated test datasets
+data/*.csv
