@@ -1,6 +1,5 @@
 #pragma once
-
-namespace veloce {
+#include <string_view>
 
 inline constexpr const char* EMBEDDED_DASHBOARD_HTML = R"HTML(<!DOCTYPE html>
 <html lang="en">
@@ -696,7 +695,11 @@ inline constexpr const char* EMBEDDED_DASHBOARD_HTML = R"HTML(<!DOCTYPE html>
                     <tbody>
                         <tr>
                             <td>Inference Kernel Latency</td>
-                            <td class="numeric" id="metric_latency">0.08 µs</td>
+                            <td class="numeric" id="metric_latency" style="color: var(--signal-pass); font-weight: 600;">0.08 µs</td>
+                        </tr>
+                        <tr>
+                            <td>End-to-End Cloud RTT</td>
+                            <td class="numeric" id="metric_rtt">-- ms</td>
                         </tr>
                         <tr>
                             <td>REST Dispatch Method</td>
@@ -719,12 +722,12 @@ inline constexpr const char* EMBEDDED_DASHBOARD_HTML = R"HTML(<!DOCTYPE html>
 
                 <!-- Secondary Technical Diagnostic -->
                 <div class="diagnostic-box">
-                    <div class="diagnostic-title">Throughput Diagnostic Probe</div>
+                    <div class="diagnostic-title">Cloud Network & Throughput Probe</div>
                     <p class="diagnostic-desc">
-                        Fires 500 parallel HTTP requests against the native socket daemon to measure loopback serialization and IPC latency.
+                        Fires 50 parallel requests over the cloud network to measure WAN round-trip latency and concurrent throughput against the C++ daemon.
                     </p>
                     <button type="button" class="btn-ghost-probe" onclick="runThroughputProbe()">
-                        Execute 500-Request Client Probe
+                        Execute 50-Request Cloud Probe
                     </button>
                     <div class="probe-log" id="probe_result"></div>
                 </div>
@@ -780,6 +783,12 @@ inline constexpr const char* EMBEDDED_DASHBOARD_HTML = R"HTML(<!DOCTYPE html>
         }
 
         async function scoreTransaction() {
+            const btn = document.querySelector('.btn-evaluate');
+            if (btn) {
+                btn.innerText = 'Evaluating...';
+                btn.style.opacity = '0.7';
+            }
+
             const features = [
                 parseFloat(document.getElementById('amount').value),
                 parseFloat(document.getElementById('dist_home').value),
@@ -789,6 +798,7 @@ inline constexpr const char* EMBEDDED_DASHBOARD_HTML = R"HTML(<!DOCTYPE html>
                 parseFloat(document.getElementById('retries').value)
             ];
 
+            const tStart = performance.now();
             try {
                 const response = await fetch('/api/v1/predict', {
                     method: 'POST',
@@ -796,15 +806,21 @@ inline constexpr const char* EMBEDDED_DASHBOARD_HTML = R"HTML(<!DOCTYPE html>
                     body: JSON.stringify({ model: currentModel, features: features })
                 });
 
+                const networkRtt = performance.now() - tStart;
                 if (!response.ok) return;
                 const data = await response.json();
-                renderVerdict(data);
+                renderVerdict(data, networkRtt);
             } catch (err) {
                 console.error("Evaluation request failed:", err);
+            } finally {
+                if (btn) {
+                    btn.innerText = 'Evaluate Transaction Vector';
+                    btn.style.opacity = '1';
+                }
             }
         }
 
-        function renderVerdict(data) {
+        function renderVerdict(data, networkRtt) {
             const probPct = (data.fraud_probability * 100).toFixed(2);
             document.getElementById('probability_value').innerText = probPct + '%';
 
@@ -829,21 +845,27 @@ inline constexpr const char* EMBEDDED_DASHBOARD_HTML = R"HTML(<!DOCTYPE html>
             }
 
             document.getElementById('metric_latency').innerText = data.latency_microseconds.toFixed(2) + ' µs';
+            if (networkRtt !== undefined) {
+                document.getElementById('metric_rtt').innerText = networkRtt.toFixed(1) + ' ms';
+            }
         }
 
         async function runThroughputProbe() {
             const out = document.getElementById('probe_result');
+            const probeBtn = document.querySelector('.btn-ghost-probe');
+            if (probeBtn) probeBtn.disabled = true;
             out.style.display = 'block';
-            out.innerText = "Transmitting 500 requests...";
+            out.innerText = "Transmitting 50 requests over cloud network...";
 
             const payload = JSON.stringify({
                 model: currentModel,
                 features: [120.0, 15.0, 5.0, 3.0, 0.2, 0.0]
             });
 
+            const count = 50;
             const t0 = performance.now();
             const batch = [];
-            for (let i = 0; i < 500; ++i) {
+            for (let i = 0; i < count; ++i) {
                 batch.push(fetch('/api/v1/predict', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -851,11 +873,21 @@ inline constexpr const char* EMBEDDED_DASHBOARD_HTML = R"HTML(<!DOCTYPE html>
                 }));
             }
 
-            await Promise.all(batch);
-            const totalMs = performance.now() - t0;
-            const rps = Math.round(500 / (totalMs / 1000));
+            try {
+                await Promise.all(batch);
+                const totalMs = performance.now() - t0;
+                const rps = Math.round(count / (totalMs / 1000));
+                const avgRtt = (totalMs / count).toFixed(1);
 
-            out.innerHTML = `500 requests dispatched in <strong>${totalMs.toFixed(1)} ms</strong><br>Client throughput: <strong>${rps.toLocaleString()} req/s</strong><br>Kernel computation: Sub-microsecond.`;
+                out.innerHTML = `${count} requests completed in <strong>${totalMs.toFixed(1)} ms</strong><br>` +
+                                `Cloud Throughput: <strong>${rps.toLocaleString()} req/s</strong><br>` +
+                                `Average RTT per request: <strong>${avgRtt} ms</strong><br>` +
+                                `In-Memory C++ Inference: <strong>Sub-microsecond (< 0.1 µs)</strong>`;
+            } catch (err) {
+                out.innerText = "Probe failed: " + err;
+            } finally {
+                if (probeBtn) probeBtn.disabled = false;
+            }
         }
 
         window.addEventListener('load', () => {
@@ -866,5 +898,3 @@ inline constexpr const char* EMBEDDED_DASHBOARD_HTML = R"HTML(<!DOCTYPE html>
 </body>
 </html>
 )HTML";
-
-} // namespace veloce

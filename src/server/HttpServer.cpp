@@ -1,6 +1,7 @@
 #include "mlengine/server/HttpServer.hpp"
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <netinet/tcp.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <arpa/inet.h>
@@ -121,6 +122,10 @@ void HttpServer::listen_loop() {
             if (!is_running_.load()) break;
             continue;
         }
+
+        // Disable Nagle's algorithm for instant packet dispatch
+        int nodelay_flag = 1;
+        setsockopt(client_fd, IPPROTO_TCP, TCP_NODELAY, (char*)&nodelay_flag, sizeof(int));
 
         // Handle connection in a dedicated thread or thread pool
         std::thread([this, client_fd]() {
