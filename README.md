@@ -2,8 +2,9 @@
 
 [![C++20](https://img.shields.io/badge/C%2B%2B-20-blue.svg)](https://en.cppreference.com/w/cpp/20)
 [![CMake](https://img.shields.io/badge/CMake-3.20+-green.svg)](https://cmake.org)
-[![Inference Latency](https://img.shields.io/badge/p50%20Latency-%3C%200.10%20%C2%B5s-brightgreen.svg)](#benchmarks)
-[![Docker Image](https://img.shields.io/badge/Docker%20Size-%3C%2025%20MB-purple.svg)](#docker--deployment)
+[![Inference Latency](https://img.shields.io/badge/p50%20Latency-%3C%200.10%20%C2%B5s-brightgreen.svg)](#-live-benchmark-results)
+[![Throughput](https://img.shields.io/badge/Throughput-5.6M%2B%20ops%2Fs-blue.svg)](#-live-benchmark-results)
+[![Docker Image](https://img.shields.io/badge/Docker%20Size-%3C%2025%20MB-purple.svg)](#-docker--cloud-deployment)
 [![License](https://img.shields.io/badge/License-MIT-lightgrey.svg)](LICENSE)
 
 An industry-grade, ultra-low latency machine learning training and inference engine implemented **from scratch in modern C++20**, paired with an embedded multi-threaded HTTP/REST microservice and an interactive real-time dashboard.
@@ -52,14 +53,76 @@ Designed specifically for latency-critical, high-throughput systems such as **Re
 
 ---
 
+## 🏛️ Architecture Decision Records (ADRs)
+
+To build a production-grade system rather than a toy script, we made deliberate, documented engineering trade-offs:
+
+### ADR-001: Contiguous Flat Memory Buffer vs. Nested Vectors
+* **Context**: A common beginner pattern in C++ is `std::vector<std::vector<double>>` for 2D matrices.
+* **Problem**: Nested vectors fragment heap allocations into multiple independent buffers. Accessing `matrix[r][c]` requires pointer indirection and thrashes CPU L1/L2 caches.
+* **Decision**: Implemented `Matrix` as a single, contiguous `std::vector<double> data_` of size `rows * cols` in Row-Major order (`r * cols + c`).
+* **Result**: Guaranteed spatial locality. An entire 64-byte CPU cache line holds 8 contiguous double-precision values, enabling hardware prefetchers to stream matrix rows with zero stalls.
+
+### ADR-002: Cache-Friendly Loop Order (`i-k-j` vs Naive `i-j-k`)
+* **Context**: Matrix multiplication $C = A \cdot B$.
+* **Problem**: The textbook algorithm uses loop order `i-j-k`:
+  ```cpp
+  // NAIVE: Inner loop strides across columns of B, jumping by N bytes per step
+  for (size_t i = 0; i < M; ++i)
+      for (size_t j = 0; j < N; ++j)
+          for (size_t k = 0; k < K; ++k)
+              C[i][j] += A[i][k] * B[k][j];
+  ```
+* **Decision**: Reordered loops to `i-k-j`:
+  ```cpp
+  // OPTIMIZED: Inner loop steps sequentially along contiguous rows of B and C
+  for (size_t i = 0; i < M; ++i) {
+      for (size_t k = 0; k < K; ++k) {
+          const double a_ik = A(i, k); // Pinned in CPU register
+          for (size_t j = 0; j < N; ++j) {
+              C(i, j) += a_ik * B(k, j);
+          }
+      }
+  }
+  ```
+* **Result**: Up to **10x execution speedup** and effortless auto-vectorization (SIMD / ARM NEON) by modern compilers.
+
+### ADR-003: Adam Optimizer vs. Vanilla SGD
+* **Context**: Logistic regression training on multi-scale financial features (amounts in thousands vs. retry counts in integers).
+* **Problem**: Standard Stochastic Gradient Descent requires manual, delicate learning-rate tuning; large gradients on high-magnitude features cause divergence, while low-magnitude features stall.
+* **Decision**: Built the **Adam (Adaptive Moment Estimation)** algorithm from scratch:
+  - First moment vector $m_t$ tracks gradient momentum.
+  - Second moment vector $v_t$ tracks gradient uncentered variance.
+  - Implemented bias corrections $\hat{m}_t = m_t / (1 - \beta_1^t)$ and $\hat{v}_t = v_t / (1 - \beta_2^t)$ to prevent zero-bias drift early in training.
+* **Result**: Fast, rock-solid convergence in < 80 epochs without manual tuning.
+
+### ADR-004: $O(D \cdot N \log N)$ Histogram Split Search for Decision Trees
+* **Context**: Constructing binary classification trees via Gini Impurity minimization.
+* **Problem**: A naive split search evaluates all pairs in $O(N^2)$ per feature, rendering training unusable on large datasets.
+* **Decision**: Sort samples once per feature at each node, then maintain cumulative running partition counters ($L_0, L_1, R_0, R_1$) across adjacent distinct thresholds in a single linear pass.
+* **Result**: Split discovery drops from quadratic $O(D \cdot N^2)$ to $O(D \cdot N \log N)$, training in under 50 milliseconds.
+
+### ADR-005: Embedded Single-Binary Architecture vs. Multi-Tier Frameworks
+* **Context**: Deploying ML models typically requires separate runtimes (e.g. Python backend + Nginx + Node.js frontend).
+* **Problem**: Multiple containers add operational complexity, cold-start latency, memory bloat (> 2 GB), and CORS security friction.
+* **Decision**: Embedded the complete HTML/JS dashboard directly into the C++ binary via string literal in `.rodata` and implemented a multi-threaded POSIX socket HTTP/1.1 server.
+* **Result**: **A single executable under 500 KB** (and Docker image under 25 MB) that serves both the low-latency API and the interactive UI simultaneously.
+
+### ADR-006: Editorial Ledger Visual Identity vs. Generic AI Templates
+* **Context**: Most AI demos use purple/cyan gradients, floating cards, and glowing neon themes.
+* **Decision**: Adopted a high-contrast **Warm Editorial Ledger** palette (`#FAF9F6` bone canvas, `#141517` deep ink, `#B83A2F` vermilion alert, and `#E5E1DA` hairline borders) paired with **Plus Jakarta Sans** and **JetBrains Mono**.
+* **Result**: Distinctive visual character that looks and feels like an authoritative financial risk terminal.
+
+---
+
 ## 📊 Live Benchmark Results
 
 Measured across **50,000 single-transaction inference operations** on Apple Silicon (ARM64) and Linux x86-64:
 
 | Implementation | Model | Mean Latency | Median (p50) | 99th %ile (p99) | Throughput (Single Core) |
 | :--- | :--- | :---: | :---: | :---: | :---: |
-| **VeloceML (C++20)** | **Decision Tree** | **0.03 µs** | **0.04 µs** | **0.08 µs** | **9,128,598 req/s** |
-| **VeloceML (C++20)** | **Logistic Regression** | **0.09 µs** | **0.08 µs** | **0.29 µs** | **5,648,361 req/s** |
+| **VeloceML (C++20)** | **Decision Tree** | **0.03 µs** (30 ns) | **0.04 µs** (40 ns) | **0.08 µs** (80 ns) | **9,128,598 req/s** |
+| **VeloceML (C++20)** | **Logistic Regression** | **0.09 µs** (90 ns) | **0.08 µs** (80 ns) | **0.29 µs** (290 ns) | **5,648,361 req/s** |
 | Python (Scikit-Learn) | Decision Tree | 42.10 µs | 38.50 µs | 98.20 µs | ~23,750 req/s |
 | Python (Scikit-Learn) | Logistic Regression | 51.30 µs | 46.20 µs | 115.00 µs | ~19,500 req/s |
 
@@ -67,43 +130,19 @@ Measured across **50,000 single-transaction inference operations** on Apple Sili
 
 ---
 
-## 🔬 Mathematical & Algorithmic Foundations
+## 🔬 Mathematical Formulas
 
-### 1. Cache-Friendly Matrix Multiplication (`i-k-j` vs `i-j-k`)
-Standard matrix multiplication uses the naive `i-j-k` triple loop:
-```cpp
-// NAIVE (i-j-k): Strides across column of B in memory, causing severe CPU cache misses
-for (size_t i = 0; i < M; ++i)
-    for (size_t j = 0; j < N; ++j)
-        for (size_t k = 0; k < K; ++k)
-            C[i][j] += A[i][k] * B[k][j]; // Hop by N bytes on every inner iteration!
-```
-VeloceML implements the **`i-k-j` loop ordering**:
-```cpp
-// OPTIMIZED (i-k-j): Streams sequentially along memory rows
-for (size_t i = 0; i < M; ++i) {
-    for (size_t k = 0; k < K; ++k) {
-        const double a_ik = A(i, k); // Stored in CPU floating-point register
-        for (size_t j = 0; j < N; ++j) {
-            C(i, j) += a_ik * B(k, j); // Sequential access in both C and B!
-        }
-    }
-}
-```
-This single cache line layout change yields up to **10x speedup** and allows hardware auto-vectorization (SIMD / ARM NEON).
-
-### 2. Numerically Stable Sigmoid Function
-To avoid floating-point overflow (`std::exp(z)` overflowing when $z \ll 0$):
+### 1. Numerically Stable Sigmoid Function
+To prevent floating-point overflow (`std::exp(z)` overflowing when $z \ll 0$):
 $$\sigma(z) = \begin{cases} \frac{1}{1 + e^{-z}} & \text{if } z \ge 0 \\ \frac{e^z}{1 + e^z} & \text{if } z < 0 \end{cases}$$
 
-### 3. Adam Optimizer (Adaptive Moment Estimation)
-Parameters $W$ are updated per mini-batch with running first and second gradient moments:
-$$m_t = \beta_1 m_{t-1} + (1 - \beta_1) g_t, \quad v_t = \beta_2 v_{t-1} + (1 - \beta_2) g_t^2$$
-$$\hat{m}_t = \frac{m_t}{1 - \beta_1^t}, \quad \hat{v}_t = \frac{v_t}{1 - \beta_2^t}$$
+### 2. Binary Cross-Entropy Loss with L2 Regularization
+$$J(W) = -\frac{1}{N} \sum_{i=1}^{N} \left[ y_i \ln(\hat{y}_i) + (1 - y_i) \ln(1 - \hat{y}_i) \right] + \frac{\lambda}{2N} \sum_{j=1}^{D} W_j^2$$
+
+### 3. Adam Weight Update Rule
 $$W_t = W_{t-1} - \frac{\alpha}{\sqrt{\hat{v}_t} + \epsilon} \hat{m}_t$$
 
-### 4. Decision Tree: $O(D \cdot N \log N)$ Fast Split Search
-Instead of evaluating candidate splits in $O(N^2)$, features are sorted once per node, and running class counts $L_0, L_1, R_0, R_1$ are maintained in a single linear sweep across feature thresholds to evaluate Gini Impurity:
+### 4. Gini Impurity for Tree Node Splitting
 $$G(S) = 1 - (p_0^2 + p_1^2)$$
 $$Gain = G(S) - \left( \frac{|S_L|}{|S|} G(S_L) + \frac{|S_R|}{|S|} G(S_R) \right)$$
 
@@ -112,7 +151,7 @@ $$Gain = G(S) - \left( \frac{|S_L|}{|S|} G(S_L) + \frac{|S_R|}{|S|} G(S_R) \righ
 ## 📂 Project Structure
 
 ```
-├── CMakeLists.txt              # Production CMake configuration
+├── CMakeLists.txt              # Production CMake configuration (with compile_commands.json)
 ├── Dockerfile                  # Multi-stage ultra-lightweight Docker build (< 25 MB)
 ├── docker-compose.yml          # One-command orchestration
 ├── render.yaml                 # Render.com cloud deployment specification
@@ -130,7 +169,8 @@ $$Gain = G(S) - \left( \frac{|S_L|}{|S|} G(S_L) + \frac{|S_R|}{|S|} G(S_R) \righ
 │       ├── metrics/
 │       │   └── Metrics.hpp     # Confusion Matrix, F1, Accuracy, Precision, Recall
 │       └── server/
-│           └── HttpServer.hpp  # Multi-threaded BSD/POSIX Socket HTTP REST Server
+│           ├── HttpServer.hpp        # Multi-threaded BSD/POSIX Socket HTTP REST Server
+│           └── EmbeddedDashboard.hpp # Embedded raw HTML/JS dashboard string
 ├── src/
 │   ├── math/Matrix.cpp
 │   ├── models/LogisticRegression.cpp
@@ -276,12 +316,3 @@ Access the dashboard at `http://localhost:8080`.
 fly launch
 fly deploy
 ```
-
----
-
-## 🎓 Core Educational Takeaways
-
-1. **Memory Locality & Cache Lines**: Why accessing contiguous memory (`i-k-j` loops) outperforms naive nested loops by an order of magnitude.
-2. **Modern C++ Idioms**: RAII, Move semantics (`noexcept`), Rule of 5, smart pointers (`std::unique_ptr`), and zero-copy slicing.
-3. **From-Scratch Optimization**: How the Adam optimizer calculates momentum updates and variance normalization on raw floating-point vectors.
-4. **Systems Architecture**: How to build a standalone, dependency-free HTTP microservice with POSIX sockets rather than relying on bloated web frameworks.
