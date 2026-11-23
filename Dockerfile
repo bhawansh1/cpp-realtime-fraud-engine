@@ -17,6 +17,7 @@ COPY include/ ./include/
 COPY src/ ./src/
 COPY tests/ ./tests/
 COPY benchmarks/ ./benchmarks/
+COPY web/ ./web/
 
 # Build optimized Release binaries
 RUN mkdir build && cd build && \
