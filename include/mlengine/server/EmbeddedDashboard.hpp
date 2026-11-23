@@ -10,7 +10,7 @@ inline constexpr const char* EMBEDDED_DASHBOARD_HTML = R"HTML(<!DOCTYPE html>
     <title>VeloceML • Real-Time Transaction Risk Evaluator</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
             /* Warm Editorial Ledger Palette */
@@ -35,8 +35,8 @@ inline constexpr const char* EMBEDDED_DASHBOARD_HTML = R"HTML(<!DOCTYPE html>
             --signal-fail-bg: #FDF1EF;
             --signal-fail-border: #F3C4BF;
 
-            --font-display: 'Instrument Serif', Georgia, serif;
-            --font-sans: 'Geist', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-display: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-sans: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
             --font-mono: 'JetBrains Mono', monospace;
         }
 
@@ -95,11 +95,11 @@ inline constexpr const char* EMBEDDED_DASHBOARD_HTML = R"HTML(<!DOCTYPE html>
 
         .masthead-titles h1 {
             font-family: var(--font-display);
-            font-size: 38px;
-            font-weight: 400;
-            font-style: italic;
-            letter-spacing: -0.01em;
-            line-height: 1.05;
+            font-size: 24px;
+            font-weight: 700;
+            font-style: normal;
+            letter-spacing: -0.03em;
+            line-height: 1.2;
             color: var(--text-ink);
             margin-bottom: 4px;
         }
