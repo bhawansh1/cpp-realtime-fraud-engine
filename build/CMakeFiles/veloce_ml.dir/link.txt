@@ -1,2 +1,0 @@
-/usr/bin/ar qc libveloce_ml.a CMakeFiles/veloce_ml.dir/src/math/Matrix.cpp.o CMakeFiles/veloce_ml.dir/src/data/Dataset.cpp.o CMakeFiles/veloce_ml.dir/src/models/LogisticRegression.cpp.o CMakeFiles/veloce_ml.dir/src/models/DecisionTree.cpp.o CMakeFiles/veloce_ml.dir/src/metrics/Metrics.cpp.o CMakeFiles/veloce_ml.dir/src/server/HttpServer.cpp.o
-/usr/bin/ranlib libveloce_ml.a

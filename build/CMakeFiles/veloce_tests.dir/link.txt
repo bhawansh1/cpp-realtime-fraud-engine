@@ -1,1 +1,0 @@
-/usr/bin/c++  -arch arm64 -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/veloce_tests.dir/tests/test_main.cpp.o CMakeFiles/veloce_tests.dir/tests/test_matrix.cpp.o CMakeFiles/veloce_tests.dir/tests/test_logistic.cpp.o CMakeFiles/veloce_tests.dir/tests/test_tree.cpp.o -o veloce_tests  libveloce_ml.a
