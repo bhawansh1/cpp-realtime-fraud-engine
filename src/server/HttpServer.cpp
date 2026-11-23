@@ -9,6 +9,7 @@
 #include <iostream>
 #include <chrono>
 #include <iomanip>
+#include <algorithm>
 #include <regex>
 
 namespace veloce {
@@ -135,15 +136,57 @@ void HttpServer::listen_loop() {
 }
 
 void HttpServer::handle_client(int client_fd) {
-    std::vector<char> buffer(8192);
-    ssize_t bytes_read = read(client_fd, buffer.data(), buffer.size() - 1);
-    if (bytes_read <= 0) {
+    // Set socket receive timeout so slow/idle connections don't hang threads
+    struct timeval tv;
+    tv.tv_sec = 3;
+    tv.tv_usec = 0;
+    setsockopt(client_fd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof(tv));
+
+    std::string raw_http;
+    std::vector<char> buffer(4096);
+    size_t header_end = std::string::npos;
+    size_t content_length = 0;
+    bool headers_parsed = false;
+
+    while (true) {
+        ssize_t bytes_read = read(client_fd, buffer.data(), buffer.size());
+        if (bytes_read <= 0) break;
+        raw_http.append(buffer.data(), bytes_read);
+
+        if (!headers_parsed) {
+            header_end = raw_http.find("\r\n\r\n");
+            if (header_end != std::string::npos) {
+                headers_parsed = true;
+                std::string headers_str = raw_http.substr(0, header_end);
+                std::string lower_headers = headers_str;
+                std::transform(lower_headers.begin(), lower_headers.end(), lower_headers.begin(), ::tolower);
+                size_t cl_pos = lower_headers.find("content-length:");
+                if (cl_pos != std::string::npos) {
+                    size_t num_start = lower_headers.find_first_not_of(" \t", cl_pos + 15);
+                    if (num_start != std::string::npos) {
+                        try {
+                            content_length = std::stoul(lower_headers.substr(num_start));
+                        } catch (...) {
+                            content_length = 0;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (headers_parsed) {
+            size_t body_bytes_read = raw_http.size() - (header_end + 4);
+            if (body_bytes_read >= content_length) {
+                break; // Fully received header and body
+            }
+        }
+    }
+
+    if (raw_http.empty()) {
         close(client_fd);
         return;
     }
-    buffer[bytes_read] = '\0';
 
-    std::string raw_http(buffer.data(), bytes_read);
     HttpRequest req = parse_request(raw_http);
 
     HttpResponse res;
@@ -172,10 +215,17 @@ void HttpServer::handle_client(int client_fd) {
 
 HttpRequest HttpServer::parse_request(const std::string& raw_http) {
     HttpRequest req;
-    std::istringstream stream(raw_http);
+    size_t header_end = raw_http.find("\r\n\r\n");
+    std::string header_part = (header_end != std::string::npos) ? raw_http.substr(0, header_end) : raw_http;
+    if (header_end != std::string::npos) {
+        req.body = raw_http.substr(header_end + 4);
+    }
+
+    std::istringstream stream(header_part);
     std::string line;
 
     if (std::getline(stream, line)) {
+        if (!line.empty() && line.back() == '\r') line.pop_back();
         std::istringstream line_stream(line);
         line_stream >> req.method >> req.path;
 
@@ -186,7 +236,9 @@ HttpRequest HttpServer::parse_request(const std::string& raw_http) {
         }
     }
 
-    while (std::getline(stream, line) && line != "\r" && !line.empty()) {
+    while (std::getline(stream, line)) {
+        if (!line.empty() && line.back() == '\r') line.pop_back();
+        if (line.empty()) continue;
         size_t colon = line.find(':');
         if (colon != std::string::npos) {
             std::string key = line.substr(0, colon);
@@ -197,22 +249,22 @@ HttpRequest HttpServer::parse_request(const std::string& raw_http) {
         }
     }
 
-    std::stringstream body_ss;
-    body_ss << stream.rdbuf();
-    req.body = body_ss.str();
-
     return req;
 }
 
 void HttpServer::send_response(int client_fd, const HttpResponse& resp) {
     std::string status_msg = (resp.status_code == 200) ? "OK" :
                              (resp.status_code == 204) ? "No Content" :
+                             (resp.status_code == 400) ? "Bad Request" :
                              (resp.status_code == 404) ? "Not Found" : "Internal Server Error";
 
     std::ostringstream ss;
     ss << "HTTP/1.1 " << resp.status_code << " " << status_msg << "\r\n";
     ss << "Content-Type: " << resp.content_type << "\r\n";
     ss << "Content-Length: " << resp.body.size() << "\r\n";
+    ss << "Cache-Control: no-cache, no-store, must-revalidate\r\n";
+    ss << "Pragma: no-cache\r\n";
+    ss << "Expires: 0\r\n";
     ss << "Access-Control-Allow-Origin: *\r\n";
     ss << "Access-Control-Allow-Methods: GET, POST, OPTIONS\r\n";
     ss << "Access-Control-Allow-Headers: Content-Type, Authorization\r\n";

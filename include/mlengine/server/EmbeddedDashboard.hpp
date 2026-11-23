@@ -267,6 +267,13 @@ inline constexpr const char* EMBEDDED_DASHBOARD_HTML = R"HTML(<!DOCTYPE html>
             color: var(--text-ink);
         }
 
+        .chip-btn.active {
+            border-color: var(--text-ink);
+            background: var(--text-ink);
+            color: #FFFFFF;
+            font-weight: 600;
+        }
+
         /* ---------------- Feature Parameter Table Rows ---------------- */
         .feature-rows {
             display: flex;
@@ -370,6 +377,7 @@ inline constexpr const char* EMBEDDED_DASHBOARD_HTML = R"HTML(<!DOCTYPE html>
             background: var(--bg-surface-inset);
             padding: 20px;
             margin-bottom: 20px;
+            transition: opacity 0.15s ease;
         }
 
         .ticket-header {
@@ -390,6 +398,7 @@ inline constexpr const char* EMBEDDED_DASHBOARD_HTML = R"HTML(<!DOCTYPE html>
             border: 1px solid currentColor;
             display: inline-block;
             font-weight: 600;
+            transition: all 0.2s ease;
         }
 
         .ticket-stamp.pass {
@@ -437,7 +446,7 @@ inline constexpr const char* EMBEDDED_DASHBOARD_HTML = R"HTML(<!DOCTYPE html>
             height: 100%;
             background: var(--signal-pass);
             width: 0%;
-            transition: width 0.2s ease, background-color 0.2s ease;
+            transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease;
         }
 
         /* ---------------- Structured Inspection Table ---------------- */
@@ -584,9 +593,9 @@ inline constexpr const char* EMBEDDED_DASHBOARD_HTML = R"HTML(<!DOCTYPE html>
                 <!-- Case Reference Chips -->
                 <div class="case-chips">
                     <span class="case-label">Reference Cases:</span>
-                    <button type="button" class="chip-btn" onclick="applyPreset('grocery')">01: Domestic Grocery ($4.50)</button>
-                    <button type="button" class="chip-btn" onclick="applyPreset('ecommerce')">02: Online Electronics ($450.00)</button>
-                    <button type="button" class="chip-btn" onclick="applyPreset('compromised')">03: Cross-Border ($1,850.00)</button>
+                    <button type="button" class="chip-btn active" id="chip_grocery" onclick="applyPreset('grocery')">01: Domestic Grocery ($4.50)</button>
+                    <button type="button" class="chip-btn" id="chip_ecommerce" onclick="applyPreset('ecommerce')">02: Online Electronics ($450.00)</button>
+                    <button type="button" class="chip-btn" id="chip_compromised" onclick="applyPreset('compromised')">03: Cross-Border ($1,850.00)</button>
                 </div>
 
                 <!-- 6 Tabular Feature Sliders -->
@@ -737,6 +746,8 @@ inline constexpr const char* EMBEDDED_DASHBOARD_HTML = R"HTML(<!DOCTYPE html>
 
     <script>
         let currentModel = 'logistic';
+        let debounceTimer = null;
+        let currentRequestId = 0;
 
         function selectModel(model) {
             currentModel = model;
@@ -746,16 +757,29 @@ inline constexpr const char* EMBEDDED_DASHBOARD_HTML = R"HTML(<!DOCTYPE html>
             scoreTransaction();
         }
 
-        function handleInputChange() {
+        function handleInputChange(autoScore = true) {
             document.getElementById('val_amount').innerText = '$' + parseFloat(document.getElementById('amount').value).toFixed(2);
             document.getElementById('val_dist_home').innerText = parseFloat(document.getElementById('dist_home').value).toFixed(1) + ' km';
             document.getElementById('val_dist_last').innerText = parseFloat(document.getElementById('dist_last').value).toFixed(1) + ' km';
             document.getElementById('val_freq').innerText = document.getElementById('freq').value + ' tx';
             document.getElementById('val_risk').innerText = parseFloat(document.getElementById('risk').value).toFixed(2);
             document.getElementById('val_retries').innerText = document.getElementById('retries').value;
+
+            if (autoScore) {
+                // If user touches sliders manually, unselect active preset chip
+                document.querySelectorAll('.chip-btn').forEach(btn => btn.classList.remove('active'));
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => {
+                    scoreTransaction();
+                }, 60);
+            }
         }
 
         function applyPreset(type) {
+            document.querySelectorAll('.chip-btn').forEach(btn => btn.classList.remove('active'));
+            const activeChip = document.getElementById('chip_' + type);
+            if (activeChip) activeChip.classList.add('active');
+
             if (type === 'grocery') {
                 document.getElementById('amount').value = 4.50;
                 document.getElementById('dist_home').value = 1.2;
@@ -778,15 +802,20 @@ inline constexpr const char* EMBEDDED_DASHBOARD_HTML = R"HTML(<!DOCTYPE html>
                 document.getElementById('risk').value = 0.94;
                 document.getElementById('retries').value = 3;
             }
-            handleInputChange();
+            handleInputChange(false);
             scoreTransaction();
         }
 
         async function scoreTransaction() {
+            const reqId = ++currentRequestId;
             const btn = document.querySelector('.btn-evaluate');
+            const ticket = document.querySelector('.ticket-slip');
             if (btn) {
                 btn.innerText = 'Evaluating...';
                 btn.style.opacity = '0.7';
+            }
+            if (ticket) {
+                ticket.style.opacity = '0.65';
             }
 
             const features = [
@@ -807,15 +836,26 @@ inline constexpr const char* EMBEDDED_DASHBOARD_HTML = R"HTML(<!DOCTYPE html>
                 });
 
                 const networkRtt = performance.now() - tStart;
-                if (!response.ok) return;
+                if (!response.ok) {
+                    const errText = await response.text();
+                    console.error("Evaluation HTTP error:", response.status, errText);
+                    return;
+                }
                 const data = await response.json();
-                renderVerdict(data, networkRtt);
+                if (reqId === currentRequestId) {
+                    renderVerdict(data, networkRtt);
+                }
             } catch (err) {
-                console.error("Evaluation request failed:", err);
+                console.error("Evaluation request network error:", err);
             } finally {
-                if (btn) {
-                    btn.innerText = 'Evaluate Transaction Vector';
-                    btn.style.opacity = '1';
+                if (reqId === currentRequestId) {
+                    if (btn) {
+                        btn.innerText = 'Evaluate Transaction Vector';
+                        btn.style.opacity = '1';
+                    }
+                    if (ticket) {
+                        ticket.style.opacity = '1';
+                    }
                 }
             }
         }
