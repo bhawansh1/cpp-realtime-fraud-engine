@@ -3,7 +3,7 @@
 
 namespace veloce {
 
-inline constexpr std::string_view EMBEDDED_DASHBOARD_HTML = R"HTML(<!DOCTYPE html>
+inline constexpr const char* EMBEDDED_DASHBOARD_HTML = R"HTML(<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
